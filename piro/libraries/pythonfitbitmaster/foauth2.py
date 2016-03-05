@@ -14,7 +14,7 @@ def fitbitoauth(userid):
 	access_token = server.oauth.token['access_token']
 	refresh_token = server.oauth.token['refresh_token']
 	user_device=UserDevice(userid, "Fitbit", access_token, refresh_token)
-	print "\n -----------\n-----------\n obtained user device", user_device
+	#print "\n -----------\n-----------\n obtained user device", user_device
 	db.session.add(user_device)
 	db.session.commit()
 	print "\n Checking all users in db"

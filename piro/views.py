@@ -8,6 +8,8 @@ from flask import Response
 #from libraries.python-fitbit-master import foauth2
 from libraries import pythonfitbitmaster as pythonfitbitmaster
 from libraries.pythonfitbitmaster import foauth2
+import fitbit
+from models import UserDevice
 #import request
 
 @app.route('/', methods=['GET', 'POST'])
@@ -22,6 +24,23 @@ def register():
 	print "userid is ----- -        ", userid
 	foauth2.fitbitoauth(userid)
 	return render_template("register.html")
+
+@app.route('/getdata', methods=['GET', 'POST'])
+def getdata():
+	#user makes get request to our api with param userid=* and auth
+	userid=request.args.get("userid")
+	first=UserDevice.query.filter_by(userid=userid).first()
+	print "user id is ----",userid
+	print "first row is ----"
+	print first.__dict__
+	fdict=first.__dict__
+	accesstoken=fdict['accesstoken']
+	refreshtoken=fdict['refreshtoken']
+	#aut_cl=Fitbit('994ae27440a52d1f0bb33e8d7e305929','d7a4ececd5e68a5f3f36d64e304fbe25',oauth2=True,access_token=accesstoken,refresh_token=refreshtoken)
+	aut_cl=fitbit.Fitbit('227NKT','d7a4ececd5e68a5f3f36d64e304fbe25',oauth2=True,access_token=accesstoken,refresh_token=refreshtoken)
+	print "-----------\n-----\n---activities-----\n\n\n"
+	print aut_cl.activities(date='2015-12-24')
+	return render_template("index.html")
 
 
 @app.route('/fitbit', methods=['GET', 'POST'])
