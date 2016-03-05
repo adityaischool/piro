@@ -30,4 +30,4 @@ class UserDevice(db.Model):
         self.accesstoken = accesstoken
         self.refreshtoken = refreshtoken
     def __repr__(self):
-        return '<Customer %r>' % self.email
+        return '<Customer %r>' % self.userid+"---access-token=--"+self.accesstoken+"---reftoken=--"+self.refreshtoken

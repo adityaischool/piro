@@ -18,6 +18,9 @@ def land():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+	userid=request.args.get("name")
+	print "userid is ----- -        ", userid
+	foauth2.fitbitoauth(userid)
 	return render_template("register.html")
 
 
