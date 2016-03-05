@@ -1,0 +1,180 @@
+/*CSS*/
+
+@font-face {
+	font-family: 'proximaNova';
+	src: url('../fonts/proximanova-thin-webfont-webfont.tff' format('truetype'));
+	font-weight: normal;
+	font-style: normal;
+
+}
+
+body {
+
+	font-family: 'proximaNova', Helvetica, Sans-Serif;
+	margin: 0;
+	padding: 0;
+	background: #19AC9D;
+	overflow-y: hidden;
+	color: #ecf0f1;
+		font-size: 12px;
+	font-weight: 600;
+
+}
+
+::-webkit-scrollbar { 
+    display: none; 
+}
+
+#dashboardtopheader {
+
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 40px;
+	background: #068D9D;
+	text-align: center;
+	font-size: 14px;
+	color: #ecf0f1;
+	line-height: 40px;
+}
+
+#mychallengesheader {
+
+	position: absolute;
+	clear: both;
+	top: 40px;
+	left: 0;
+	width: 100%;
+	height: 40px;
+	background: #068D9D;
+	text-align: center;
+	font-size: 14px;
+	color: #ecf0f1;
+	line-height: 40px;
+}
+
+		.panel.price,
+		.panel.price>.panel-heading{
+			border-radius:0px;
+			 -moz-transition: all .3s ease;
+			-o-transition:  all .3s ease;
+			-webkit-transition:  all .3s ease;
+		}
+		.panel.price:hover{
+			box-shadow: 0px 0px 30px rgba(0,0,0, .2);
+		}
+		.panel.price:hover>.panel-heading{
+			box-shadow: 0px 0px 30px rgba(0,0,0, .2) inset;
+		}
+		
+				
+		.panel.price>.panel-heading{
+			box-shadow: 0px 5px 0px rgba(50,50,50, .2) inset;
+			text-shadow:0px 3px 0px rgba(50,50,50, .6);
+		}
+
+
+		.price .list-group-item{
+			border-bottom-:1px solid rgba(250,250,250, .5);
+		}
+		
+		.panel.price .list-group-item:last-child {
+			border-bottom-right-radius: 0px;
+			border-bottom-left-radius: 0px;
+		}
+		.panel.price .list-group-item:first-child {
+			border-top-right-radius: 0px;
+			border-top-left-radius: 0px;
+		}
+		
+		.price .panel-footer {
+			color: #fff;
+			border-bottom:0px;
+			background-color:  rgba(0,0,0, .1);
+			box-shadow: 0px 3px 0px rgba(0,0,0, .3);
+		}
+		.panel.price .btn{
+			box-shadow: 0 -1px 0px rgba(50,50,50, .2) inset;
+			border:0px;
+		}
+
+			.price.panel-red>.panel-heading {
+			color: #fff;
+			background-color: #D04E50;
+			border-color: #FF6062;
+			border-bottom: 1px solid #FF6062;
+		}
+		
+			
+		.price.panel-red>.panel-body {
+			color: #fff;
+			background-color: #EF5A5C;
+		}
+
+		.price.panel-red>.panel-body .lead{
+				text-shadow: 0px 3px 0px rgba(50,50,50, .3);
+		}
+		
+		.price.panel-red .list-group-item {
+			color: #333;
+			background-color: rgba(50,50,50, .01);
+			font-weight:600;
+			text-shadow: 0px 1px 0px rgba(250,250,250, .75);
+		}
+
+#challengecarousel{
+	position: relative;
+    width: auto;
+    height: 300px;
+    top: 85px;
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+#centreDatahold{
+	position: relative;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+    
+}
+#data{
+	position: relative;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    
+}
+
+.header2 {
+
+	background: #D17A22;
+
+}
+
+.dash {
+
+	color: #ecf0f1;
+
+}
+#challenge0 {
+
+    left: 0;
+
+}
+
+#challenge1 {
+
+    left: 235px;
+}
+
+#challenge2 {
+
+    left: 470px;
+}
+
+#challenge3 {
+
+    left: 705px;
+}
+
