@@ -9,9 +9,9 @@ clientId = '227NKT'
 clientSecret = 'd7a4ececd5e68a5f3f36d64e304fbe25'
 
 def hitFitbitApis(userId, date=None):
-	
 	accesstoken = ''
 	refreshtoken = ''
+
 	# Get User's Fitbit access & refresh tokens from our web server db
 	try:
 		first=UserDevice.query.filter_by(userid=userId).first()
@@ -22,11 +22,14 @@ def hitFitbitApis(userId, date=None):
 		accesstoken=fdict['accesstoken']
 		refreshtoken=fdict['refreshtoken']
 	except Exception as e:
-		print e
+		print "Error! --- ", e
 
 	# Instantiate Fitbit API client object
-	auth_cl=fitbit.Fitbit(clientId, clientSecret,oauth2=True,access_token=accesstoken,refresh_token=refreshtoken)
-	
+	try:
+		auth_cl=fitbit.Fitbit(clientId, clientSecret,oauth2=True,access_token=accesstoken,refresh_token=refreshtoken)
+	except Exception as e:
+		print "Error! --- ", e
+
 	# Hit 'Body' endpoint of Fitbit API
 	fitbitBodyData = auth_cl.body(date)
 	print "-----------\n-----\n---Body Data-----\n\n\n"
