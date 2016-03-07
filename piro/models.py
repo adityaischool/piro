@@ -16,7 +16,7 @@ class User(db.Model):
         self.email = email
         self.userpimac=userpimac
     def __repr__(self):
-        return '<Customer %r>' % self.email," ,mac address  ",self.userpimac,"   user id  ",userid
+        return 'userid'+self.userid+'userpimac'+self.userpimac
 
 class UserDevice(db.Model):
     userid = db.Column(db.String(120), primary_key=True)#ss
