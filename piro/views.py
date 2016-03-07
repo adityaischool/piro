@@ -10,6 +10,7 @@ from libraries import pythonfitbitmaster as pythonfitbitmaster
 from libraries.pythonfitbitmaster import foauth2
 import fitbit
 from models import UserDevice,User
+from piro import hitFitbitApi
 #import request
 
 @app.route('/', methods=['GET', 'POST'])
@@ -27,12 +28,12 @@ def upload():
 	print "\n requested data by mac address---",macaddress
 	try:
 		print "sending to parse data"
-		json=parsedata(macaddress)
+		js=parsedata(macaddress)
 	except Exception as e:
 		print e
 		return ''
 	print "returning response"
-	return Response("Holla SJ!!!!---userid is " + json)
+	return Response(json.dumps(js))
 
 def parsedata(macaddress):
 	userswithMac=User.query.filter_by(userpimac=macaddress).first()
@@ -41,7 +42,9 @@ def parsedata(macaddress):
 	userpimac=fdict['userpimac']
 	userid=fdict['userid']
 	print"mac address translated to this user----",userid
-	return userid
+	js=hitFitbitApi.hitFitbitApis(userid)
+	print "gonna return",js
+	return js
 	
 
 @app.route('/register', methods=['GET', 'POST'])
