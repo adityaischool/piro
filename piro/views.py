@@ -9,7 +9,7 @@ from flask import Response
 from libraries import pythonfitbitmaster as pythonfitbitmaster
 from libraries.pythonfitbitmaster import foauth2
 import fitbit
-from models import UserDevice
+from models import UserDevice,User
 #import request
 
 @app.route('/', methods=['GET', 'POST'])
@@ -17,6 +17,21 @@ def land():
 	return render_template("index.html")
 
 
+@app.route('/requestdata', methods=['GET', 'POST'])
+def upload():
+	print "requested data"
+	if request.method == 'POST':
+		macaddress = request.form['macaddress']
+	else:
+		macaddress=request.args.get("macaddress")
+	print "\n requested data by mac address"
+	try:
+		print "sending to parse data"
+		json=parsedata(macaddress)
+	except Exception as e:
+		print e
+		return ''
+	return '200'
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -24,6 +39,28 @@ def register():
 	print "userid is ----- -        ", userid
 	foauth2.fitbitoauth(userid)
 	return render_template("register.html")
+
+
+def parsedata(macaddress):
+	#user makes get request to our api with param userid=* and auth
+	userswithMac=User.query.filter_by(userpimac=macaddress)
+	#userid=request.args.get("userid")
+	#first=UserDevice.query.filter_by(userid=userid).first()
+	#print "user id is ----",userid
+	#print "first row is ----"
+	#print first.__dict__
+	fdict=userswithMac.__dict__
+	print "dict for this mac is", fdict
+	userpimac=fdict['userpimac']
+	userid=fdict['userid']
+	print"mac address translated to this user----",userid
+	#aut_cl=Fitbit('994ae27440a52d1f0bb33e8d7e305929','d7a4ececd5e68a5f3f36d64e304fbe25',oauth2=True,access_token=accesstoken,refresh_token=refreshtoken)
+	#aut_cl=fitbit.Fitbit('227NKT','d7a4ececd5e68a5f3f36d64e304fbe25',oauth2=True,access_token=accesstoken,refresh_token=refreshtoken)
+	print "-----------\n-----\n---activities-----\n\n\n"
+	print aut_cl.activities(date='2015-12-24')
+	return render_template("index.html")
+
+
 
 @app.route('/getdata', methods=['GET', 'POST'])
 def getdata():

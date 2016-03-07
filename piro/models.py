@@ -10,12 +10,13 @@ class User(db.Model):
     #for their respective device auth keys and hit those apis
     # You need to a relationship to Address table here
     # see http://flask-sqlalchemy.pocoo.org/2.1/models/#one-to-many-relationships
-    def __init__(self, userid, name, email):
+    def __init__(self, userid, name, email,userpimac):
         self.userid=userid
         self.name = name
         self.email = email
+        self.userpimac=userpimac
     def __repr__(self):
-        return '<Customer %r>' % self.email
+        return '<Customer %r>' % self.email," ,mac address  ",self.userpimac,"   user id  ",userid
 
 class UserDevice(db.Model):
     userid = db.Column(db.String(120), primary_key=True)#ss
