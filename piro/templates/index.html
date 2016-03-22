@@ -1,20 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+	<head>
+		<title="Product Ninjas App Authorizations">
+		<meta charset='utf-8'>
+	</head>
 
-<head>
+	<body>
 
+		<h1>Authorize Yo Shit!</h1>
+		<form action="/register" method="get" accept-charset="utf-8">
+			<input type="text" name="name" value="" placeholder="Enter your User ID">
+			<input type="submit">	
+		</form>
 
-</head>
+		<div>
+		    <a href="/connect-facebook">Connect your Facebook</a>
+		</div>
 
-<body>
+		<div>
+		    <a href="/connect-fitbit">Connect your Fitbit</a>
+		</div>
 
-    <!-- Navigation -->
-    Register your device here
-    <a href="/fitbit"> Fitbit </a>
-<form action="/register" method="get" accept-charset="utf-8">
-<input type="text" name="name" value="" placeholder="Enter your userid">
-<input type="submit">Submit</input>	
-</form>
-</body>
+		<div>
+			<a href="/connect-lastfm">Connect your Last.fm</a>
+		</div>
 
+	</body>
 </html>

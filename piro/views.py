@@ -11,11 +11,24 @@ from libraries.pythonfitbitmaster import foauth2
 import fitbit
 from models import UserDevice,User
 from piro import hitFitbitApi
-#import request
+from facebookLongTermTokenFetcher import fetchLongTermFacebookToken
+import md5, base64
+from pprint import pprint
 
 @app.route('/', methods=['GET', 'POST'])
 def land():
 	return render_template("index.html")
+
+@app.route('/connect-facebook', methods=['GET', 'POST'])
+def connectFacebook():
+	return render_template("connect_facebook.html")
+
+@app.route('/get-facebook-long-term-token')
+def getFacebookLongTermToken():
+	shortTermToken = request.args.get('token')
+	print "Facebook short-term token:", shortTermToken
+	print "Fetching long-term token from Facebook..."
+	tokenResponse = fetchLongTermFacebookToken(shortTermToken)
 
 
 @app.route('/requestdata', methods=['GET', 'POST'])
@@ -45,7 +58,64 @@ def parsedata(macaddress):
 	js=hitFitbitApi.hitFitbitApis(userid)
 	print "gonna return",js
 	return js
+
+@app.route('/connect-lastfm')
+def connectLastFm():
+	# response = requests.get('http://last.fm/api/auth/?api_key=070094824815e5b8dc5fcfbc5a2f723f')
+	# print
+	# print "------- RESPONSE -----------", response
+	# print
+	return redirect('http://last.fm/api/auth/?api_key=070094824815e5b8dc5fcfbc5a2f723f&cb=http://localhost:5000/lastfm-token')
 	
+@app.route('/lastfm-token')
+def lastfmToken():
+	token = request.args.get('token')
+	print "--------- TOKEN--------- ", token
+
+	#lastfmGetUserRecents('brnr07')
+	signature = lastfmSignatureGen(token, '070094824815e5b8dc5fcfbc5a2f723f')
+	print
+	print "---------SIGNATURE-------", signature
+	print
+	requestUrlRaw = 'http://ws.audioscrobbler.com/2.0/?method=auth.getsession&api_key=070094824815e5b8dc5fcfbc5a2f723f&token='+token+'&api_sig='+signature+'&format=json'
+	requestUrlEncoded = requestUrlRaw.decode('utf-8').encode('utf-8')
+
+	getAuthSession = requests.get(requestUrlEncoded)
+	jsonResponse = getAuthSession.json()
+	print
+	print "------- AUTH SESSION RESPONSE-------"
+	pprint(jsonResponse)
+	print
+
+	lastfmUsername = jsonResponse['session']['name']
+	print lastfmUsername
+	# NEED TO STORE USER'S LAST.FM USERNAME IN DB FOR FUTURE API CALLS (NO AUTH NECESSARY IF WE HAVE THEIR LAST.FM USERNAME!)
+
+	return render_template('index.html')
+
+def lastfmSignatureGen(token, apiKey):
+	token = token
+	apiKey = apiKey
+	method = 'auth.getsession'
+	mySecret = "3afa4374733f63f58bd6e5b5962cbbb6"
+
+	unsignedParams = "api_key" + apiKey + \
+	"method" + method + \
+	"token" + token
+	
+	unsignedParams.encode('utf-8')
+	unsignedParams += mySecret
+
+	m = md5.new()
+	m.update(unsignedParams)
+	return m.hexdigest()
+
+def lastfmGetUserRecents(userId):
+	userResponse = requests.get('http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user='+userId+'&api_key=070094824815e5b8dc5fcfbc5a2f723f&format=json')
+	print
+	print "------- LAST.FM USER OBJECT -------"
+	pprint(userResponse.json())
+	print
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
