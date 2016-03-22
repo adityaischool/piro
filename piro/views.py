@@ -13,6 +13,7 @@ from models import UserDevice,User
 from piro import hitFitbitApi
 from facebookLongTermTokenFetcher import fetchLongTermFacebookToken
 import md5, base64
+import lastfmAPI
 from pprint import pprint
 
 @app.route('/', methods=['GET', 'POST'])
@@ -61,61 +62,64 @@ def parsedata(macaddress):
 
 @app.route('/connect-lastfm')
 def connectLastFm():
-	# response = requests.get('http://last.fm/api/auth/?api_key=070094824815e5b8dc5fcfbc5a2f723f')
-	# print
-	# print "------- RESPONSE -----------", response
-	# print
-	return redirect('http://last.fm/api/auth/?api_key=070094824815e5b8dc5fcfbc5a2f723f&cb=http://localhost:5000/lastfm-token')
+	# api_key = '070094824815e5b8dc5fcfbc5a2f723f'
+	api_key = lastfmAPI.getAPIKey()
+	print
+	print '---------- API KEY ---------', api_key
+	callback_redirect = lastfmAPI.getAuthCallback()
+	print
+	print '---------- CALLBACK REDIRECT --------', callback_redirect
+	# callback_redirect = 'http://localhost:5000/lastfm-token'
+	return redirect('http://last.fm/api/auth/?api_key='+api_key+'&cb='+callback_redirect)
 	
 @app.route('/lastfm-token')
 def lastfmToken():
+	# api_key = '070094824815e5b8dc5fcfbc5a2f723f'
+	api_key = lastfmAPI.getAPIKey()
 	token = request.args.get('token')
 	print "--------- TOKEN--------- ", token
 
+	lastfmAPI.getUserName(token)
+
 	#lastfmGetUserRecents('brnr07')
-	signature = lastfmSignatureGen(token, '070094824815e5b8dc5fcfbc5a2f723f')
-	print
-	print "---------SIGNATURE-------", signature
-	print
-	requestUrlRaw = 'http://ws.audioscrobbler.com/2.0/?method=auth.getsession&api_key=070094824815e5b8dc5fcfbc5a2f723f&token='+token+'&api_sig='+signature+'&format=json'
-	requestUrlEncoded = requestUrlRaw.decode('utf-8').encode('utf-8')
+	# signature = lastfmAPI.lastfmSignatureGen(token)
+	# print
+	# print "---------SIGNATURE-------", signature
+	# print
+	# requestUrlRaw = 'http://ws.audioscrobbler.com/2.0/?method=auth.getsession&api_key='+api_key+'&token='+token+'&api_sig='+signature+'&format=json'
+	# requestUrlEncoded = requestUrlRaw.decode('utf-8').encode('utf-8')
 
-	getAuthSession = requests.get(requestUrlEncoded)
-	jsonResponse = getAuthSession.json()
-	print
-	print "------- AUTH SESSION RESPONSE-------"
-	pprint(jsonResponse)
-	print
+	# getAuthSession = requests.get(requestUrlEncoded)
+	# jsonResponse = getAuthSession.json()
+	# print
+	# print "------- AUTH SESSION RESPONSE-------"
+	# pprint(jsonResponse)
+	# print
 
-	lastfmUsername = jsonResponse['session']['name']
-	print lastfmUsername
-	# NEED TO STORE USER'S LAST.FM USERNAME IN DB FOR FUTURE API CALLS (NO AUTH NECESSARY IF WE HAVE THEIR LAST.FM USERNAME!)
+	# lastfmUsername = jsonResponse['session']['name']
+	# print lastfmUsername
 
+	# NEED TO TRIGGER A CONFIRMATION OF SUCCESS
 	return render_template('index.html')
 
-def lastfmSignatureGen(token, apiKey):
-	token = token
-	apiKey = apiKey
-	method = 'auth.getsession'
-	mySecret = "3afa4374733f63f58bd6e5b5962cbbb6"
+# DELETE ONCE CONFIRMED WORKING FROM LASTFM PACKAGE
+# def lastfmSignatureGen(token, apiKey):
+# 	token = token
+# 	apiKey = apiKey
+# 	method = 'auth.getsession'
+# 	mySecret = "3afa4374733f63f58bd6e5b5962cbbb6"
 
-	unsignedParams = "api_key" + apiKey + \
-	"method" + method + \
-	"token" + token
+# 	unsignedParams = "api_key" + apiKey + \
+# 	"method" + method + \
+# 	"token" + token
 	
-	unsignedParams.encode('utf-8')
-	unsignedParams += mySecret
+# 	unsignedParams.encode('utf-8')
+# 	unsignedParams += mySecret
 
-	m = md5.new()
-	m.update(unsignedParams)
-	return m.hexdigest()
+# 	m = md5.new()
+# 	m.update(unsignedParams)
+# 	return m.hexdigest()
 
-def lastfmGetUserRecents(userId):
-	userResponse = requests.get('http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user='+userId+'&api_key=070094824815e5b8dc5fcfbc5a2f723f&format=json')
-	print
-	print "------- LAST.FM USER OBJECT -------"
-	pprint(userResponse.json())
-	print
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -146,7 +150,7 @@ def getdata():
 	return render_template("index.html")
 
 
-@app.route('/fitbit', methods=['GET', 'POST'])
+@app.route('/connect-fitbit', methods=['GET', 'POST'])
 def fitbithandler():
 	#call fitbit oauth code here
 	foauth2.fitbitoauth()
