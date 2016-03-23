@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Dropbox Photo Folder Selection</title>
+		<meta charset='utf-8'>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+	</head>
+
+	<body>
+
+		<h1>Select Dropbox folders from which to pull photos</h1>
+
+
+		<ul>
+			{% for folder in folderData %}
+				<li><label><input type="checkbox" data-value="{{ folder.path }}" value="{{ folder.name }}">{{ folder.name }}</label></li>
+				<!-- <li data-value="{{ folder.path }}">{{ folder.name }}</li> -->
+			{% endfor %}
+		</ul>
+		<button id="submit-dropbox-folders">Select Folders</button>
+		
+		<script type="text/javascript" src="{{ url_for('static', filename='js/dropbox-folder-selection.js') }}"></script>
+	</body>
+</html>

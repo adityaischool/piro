@@ -13,7 +13,7 @@ from models import UserDevice,User
 from piro import hitFitbitApi
 from facebookLongTermTokenFetcher import fetchLongTermFacebookToken
 import md5, base64
-import lastfmAPI
+import lastfmAPI, dropboxAPI
 from pprint import pprint
 
 @app.route('/', methods=['GET', 'POST'])
@@ -69,56 +69,45 @@ def connectLastFm():
 	callback_redirect = lastfmAPI.getAuthCallback()
 	print
 	print '---------- CALLBACK REDIRECT --------', callback_redirect
-	# callback_redirect = 'http://localhost:5000/lastfm-token'
 	return redirect('http://last.fm/api/auth/?api_key='+api_key+'&cb='+callback_redirect)
 	
 @app.route('/lastfm-token')
 def lastfmToken():
-	# api_key = '070094824815e5b8dc5fcfbc5a2f723f'
-	api_key = lastfmAPI.getAPIKey()
 	token = request.args.get('token')
-	print "--------- TOKEN--------- ", token
-
+	print "--------- TOKEN --------- ", token
 	lastfmAPI.getUserName(token)
-
-	#lastfmGetUserRecents('brnr07')
-	# signature = lastfmAPI.lastfmSignatureGen(token)
-	# print
-	# print "---------SIGNATURE-------", signature
-	# print
-	# requestUrlRaw = 'http://ws.audioscrobbler.com/2.0/?method=auth.getsession&api_key='+api_key+'&token='+token+'&api_sig='+signature+'&format=json'
-	# requestUrlEncoded = requestUrlRaw.decode('utf-8').encode('utf-8')
-
-	# getAuthSession = requests.get(requestUrlEncoded)
-	# jsonResponse = getAuthSession.json()
-	# print
-	# print "------- AUTH SESSION RESPONSE-------"
-	# pprint(jsonResponse)
-	# print
-
-	# lastfmUsername = jsonResponse['session']['name']
-	# print lastfmUsername
-
-	# NEED TO TRIGGER A CONFIRMATION OF SUCCESS
+	# NEED TO TRIGGER & SHOW A CONFIRMATION OF SUCCESS FOR THE USER
 	return render_template('index.html')
 
-# DELETE ONCE CONFIRMED WORKING FROM LASTFM PACKAGE
-# def lastfmSignatureGen(token, apiKey):
-# 	token = token
-# 	apiKey = apiKey
-# 	method = 'auth.getsession'
-# 	mySecret = "3afa4374733f63f58bd6e5b5962cbbb6"
+@app.route('/connect-dropbox')
+def connectDropbox():
+	api_key = dropboxAPI.getAPIKey()
+	print
+	print '---------- API KEY ---------', api_key
+	callback_redirect = dropboxAPI.getAuthCallback()
+	print
+	print '---------- CALLBACK REDIRECT --------', callback_redirect
+	print
+	return redirect('https://www.dropbox.com/1/oauth2/authorize?response_type=code&client_id='+api_key+'&redirect_uri='+callback_redirect)
 
-# 	unsignedParams = "api_key" + apiKey + \
-# 	"method" + method + \
-# 	"token" + token
-	
-# 	unsignedParams.encode('utf-8')
-# 	unsignedParams += mySecret
+@app.route('/dropbox-token')
+def dropboxToken():
+	code = request.args.get('code')
+	print "--------- CODE --------- ", code
+	token = dropboxAPI.codeFlow(code)
 
-# 	m = md5.new()
-# 	m.update(unsignedParams)
-# 	return m.hexdigest()
+	return redirect(url_for('dropbox-photo-folder-selection'))
+
+@app.route('/dropbox-photo-folder-selection')
+def dropboxPhotoFolderSelection():
+	folderData = dropboxAPI.getUserFolders()
+	# REDIRECT TO PAGE THAT ALLOWS USER TO SELECT FOLDERS WITH PHOTOS
+	return render_template('dropbox_photo_folder_selection.html', folderData=folderData)
+
+@app.route('/dropbox-user-selected-folders', methods=['GET', 'POST'])
+def dropboxUserSelectedFolders():
+	folders = request.args.get('paths')
+	print "------ FOLDERS------", folders
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -148,7 +137,6 @@ def getdata():
 	print "-----------\n-----\n---activities-----\n\n\n"
 	print aut_cl.activities(date='2015-12-24')
 	return render_template("index.html")
-
 
 @app.route('/connect-fitbit', methods=['GET', 'POST'])
 def fitbithandler():

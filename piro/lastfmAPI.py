@@ -165,4 +165,4 @@ def saveToBox(trackPlaybackObject):
 
 if __name__ == '__main__':
 	# getUserRecentPlays()
-	# getUserHistoricalPlays()
+	getUserHistoricalPlays()
