@@ -1,33 +1,35 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<title>Product Ninjas App Authorizations></title>
-		<meta charset='utf-8'>
-	</head>
+{% extends "base.html" %}
 
-	<body>
+{% block title %}
+	App Authorization
+{% endblock %}
 
-		<h1>Authorize Yo Shit!</h1>
-		<form action="/register" method="get" accept-charset="utf-8">
-			<input type="text" name="name" value="" placeholder="Enter your User ID">
-			<input type="submit">	
-		</form>
+{% block header %}
+	{{ super() }}
+	<form action="logout" id="logout">
+		<span id="username">Logged in as {{ name }}</span>
+		<input class="action-button" id="logout-button" type="submit" value="Logout">
+	</form>
+{% endblock %}
 
-		<div>
-		    <a href="/connect-facebook">Connect your Facebook</a>
-		</div>
+{% block content %}
+<h1>Authorize Services</h1>
 
-		<div>
-			<a href="/connect-dropbox">Connect your Dropbox photos</a>
-		</div>
+<div>
+    <a href="/connect-facebook">Connect your Facebook</a>
+</div>
 
-		<div>
-		    <a href="/connect-fitbit">Connect your Fitbit</a>
-		</div>
+<div>
+	<a href="/connect-dropbox">Connect your Dropbox photos</a>
+</div>
 
-		<div>
-			<a href="/connect-lastfm">Connect your Last.fm</a>
-		</div>
+<div>
+    <a href="/connect-fitbit">Connect your Fitbit</a>
+</div>
 
-	</body>
-</html>
+<div>
+	<a href="/connect-lastfm">Connect your Last.fm</a>
+</div>
+{% endblock %}
+
+{% block scripts %}{% endblock %}

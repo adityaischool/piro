@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>{% block title %}{% endblock %} - Capsule</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+		<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+		{% block styles %}{% endblock %}
+	</head>
+
+	<body>
+
+		<header>
+			{% block header %}
+			<div id="site-title-wrapper">
+				<div id="site-icon-wrapper">
+					<img src="https://cdn3.iconfinder.com/data/icons/health/100/pill_capsule-512.png">
+				</div>
+				<h3 id="site-title">Capsule</h3>
+			</div>
+			{% endblock %}
+		</header>
+		<div id="content">{% block content %}{% endblock %}</div>
+
+		<footer>
+			<p>&copy; Copyright 2016 Capsule, all rights reserved</p>
+		</footer>
+
+		{% block scripts %}{% endblock %}
+	</body>
+</html>

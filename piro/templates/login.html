@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+	Login
+{% endblock %}
+
+{% block content %}
+<h1>Login/Register</h1>
+
+<div class="main-container">
+	<h3>Let's get you logged in</h3>
+	<form action="login" method='post'>
+		<label class="survey-item">What's your name?
+			<input type="text" name="username">
+		</label>
+		<input class="action-button" id="login" type="submit" value="Submit">
+	</form>
+	<a href='/register'>Need to register?</a>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/dropbox-folder-selection.js') }}"></script>
+{% endblock %}

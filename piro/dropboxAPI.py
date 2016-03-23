@@ -54,6 +54,7 @@ def getUserFolders():
 
 	print
 	print "------- USER'S DROPBOX FOLDERS -------"
+	print
 	for item in folders.entries:		
 		if item.__class__.__name__ == 'FolderMetadata':
 			print
@@ -66,10 +67,6 @@ def getUserFolders():
 			}
 
 			returnFolders.append(tempFolder)
-			# Perhaps auto-check folders with things like 'picture' or 'photo' in the name
-
-	print
-
 	# Sort folders alphabetically
 	sortedFolders = sorted(returnFolders, key=lambda k: k['name'].lower())
 	return sortedFolders

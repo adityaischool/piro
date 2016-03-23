@@ -1,6 +1,6 @@
-from flask import render_template,request,session,redirect,jsonify,Response
+from flask import render_template,request,session,redirect,jsonify,Response, escape
 from flask import url_for
-from piro import app
+from piro import app, models, db
 import urllib2,fitoauth
 import math
 import json,os,requests,os,datetime,time
@@ -9,16 +9,131 @@ from flask import Response
 from libraries import pythonfitbitmaster as pythonfitbitmaster
 from libraries.pythonfitbitmaster import foauth2
 import fitbit
-from models import UserDevice,User
+from models import User, UserDevice
 from piro import hitFitbitApi
 from facebookLongTermTokenFetcher import fetchLongTermFacebookToken
 import md5, base64
 import lastfmAPI, dropboxAPI
 from pprint import pprint
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
+@app.route('/index')
 def land():
-	return render_template("index.html")
+	username = ''
+	if 'username' in session:
+		username = escape(session['username'])
+		onboarded = session['onboarded']
+		if onboarded:
+			return render_template('dashboard.html', name=username)
+		else:
+			return render_template('service_authorization.html', name=username)
+	else:
+		return render_template('login.html', errors=None)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+	errors = {}
+	if request.method=='POST':
+		username = request.form['username']
+		# First check if username in web server db
+		# TODO: ADD LOGIC FOR PASSWORDS
+		usernameQueryResults = User.query.filter_by(name=username).first()
+		if (type(usernameQueryResults) != type(None)):
+			usernameQueryResultsDict = usernameQueryResults.__dict__
+			print
+			print "------- USER DB RECORD -------", usernameQueryResultsDict
+			print
+			# If username in db, set session object with username and userId
+			username = queryResultsDict['user']
+			userId = queryResultsDict['userid']
+			email = queryResultsDict['email']
+			onboarded = queryResultsDict['onboarded']
+			session['username'] = username
+			session['userId'] = userId
+			session['email'] = email
+			session['onboarded'] = onboarded
+			return redirect('/index')
+		# If username not in db, notify user that the username does not exist - let them reenter
+		else:
+			errors['usernameError'] = True
+			render_template('login.html', errors=errors)
+
+# Generates an md5 hash from the user name, email, & a random number
+def generateUserId(userName, email):
+	random = str(os.urandom(24))
+	m = md5.new()
+	m.update(userName+email+random)
+	print "------- HASHED USER ID -------", m.hexdigest()
+	return m.hexdigest()
+
+# Logout handler
+@app.route('/logout')
+def logout():
+	session.pop('username', None)
+	session.pop('email', None)
+	session.pop('userId', None)
+	return redirect('index')
+
+# Route user to registration page
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+	# userid=request.args.get("name")
+	# print "userid is ----- -        ", userid
+	# foauth2.fitbitoauth(userid)
+	return render_template("register.html", errors=None)
+
+@app.route('/submit-registration', methods=['GET', 'POST'])
+def submitRegistration():
+	errors = {}
+	if request.method=='POST':
+		username = escape(request.form['username']).encode('utf-8')
+		email = escape(request.form['email']).encode('utf-8')
+		userId = ''
+		user = ''
+		onboarded = False
+
+		# First check if username or email in web server db
+		# TODO: ADD LOGIC FOR PASSWORDS LATER
+		usernameQueryResults = User.query.filter_by(name=username).first()
+		emailQueryResults = User.query.filter_by(email=email).first()
+
+		print type(usernameQueryResults)
+		print type(emailQueryResults)
+
+		# Check if username and email are in web server db yet
+		# If neither are in web server db, proceed with registration
+		if (type(usernameQueryResults) == type(None)) and (type(emailQueryResults) == type(None)):
+			print
+			print '------- USERNAME AND EMAIL DO NOT YET EXIST IN DB ------'
+			print '------- WRITING USERNAME AND EMAIL TO DB -------'
+			print
+			# Generate unique userId
+			userId = generateUserId(username, email)
+			# Create User db record
+			user = User(userId, username, email, onboarded, '0000000000000000')
+			# Add and commit newly created User db record
+			db.session.add(user)
+			db.session.commit()
+			# Set session values
+			session['username'] = username
+			session['userId'] = userId
+			session['email'] = email
+			session['onboarded'] = onboarded
+			# Finally, redirect user to index
+			return redirect('/index')
+		# If username exists in db already but email doesn't, notify user as such and let them try a new username
+		if (type(usernameQueryResults) == type(None)) and (type(emailQueryResults) == type(None)):
+			errors['usernameError'] = True
+			return render_template('register.html', errors=errors)
+		# If email exists in db already but username doesn't, notify user as such and let them try a different email
+		if (type(usernameQueryResults) == type(None)) and (type(emailQueryResults) != type(None)):
+			errors['emailError'] = True
+			return render_template('register.html', errors=errors)
+		# If both username and email exist in db already, notify user as such and give them a login button
+		if (type(usernameQueryResults) != type(None)) and (type(emailQueryResults) != type(None)):
+			errors['usernameError'] = True
+			errors['emailError'] = True
+			return render_template('register.html', errors=errors)
 
 @app.route('/connect-facebook', methods=['GET', 'POST'])
 def connectFacebook():
@@ -30,7 +145,6 @@ def getFacebookLongTermToken():
 	print "Facebook short-term token:", shortTermToken
 	print "Fetching long-term token from Facebook..."
 	tokenResponse = fetchLongTermFacebookToken(shortTermToken)
-
 
 @app.route('/requestdata', methods=['GET', 'POST'])
 def upload():
@@ -73,11 +187,30 @@ def connectLastFm():
 	
 @app.route('/lastfm-token')
 def lastfmToken():
+	username = escape(session['username'])
 	token = request.args.get('token')
 	print "--------- TOKEN --------- ", token
 	lastfmAPI.getUserName(token)
-	# NEED TO TRIGGER & SHOW A CONFIRMATION OF SUCCESS FOR THE USER
-	return render_template('index.html')
+	# NEED TO TRIGGER & SHOW A CONFIRMATION OF SUCCESS THAT AUTH WAS SUCCCESSFUL
+
+	# If user has already been onboarded, return them to the service authorization page
+	if session['onboarded']:
+		return render_template('service_authorization.html', name=username)
+	# If user has not been fully onboarded, redirect them to the next service authorization option
+	# If this is the last service authorization option available on the list, redirect user to the dashboard
+	else:
+		changeUserOnboardedStatus()
+		return render_template('dashboard.html')
+
+# Once a user is finished onboarding (i.e., they have gone through all of the service authorization options),
+# change their onboarded status in the db to True
+def changeUserOnboardedStatus():
+	userId = session['userId']
+	user = User.query.filter_by(userid=userId).first()
+	user.onboarded = True
+	db.session.commit()
+	#userIdQueryResultsDict = userIdQueryResults.__dict__
+
 
 @app.route('/connect-dropbox')
 def connectDropbox():
@@ -106,16 +239,19 @@ def dropboxPhotoFolderSelection():
 
 @app.route('/dropbox-user-selected-folders', methods=['GET', 'POST'])
 def dropboxUserSelectedFolders():
+	username = escape(session['username'])
 	folders = request.args.get('paths')
 	print "------ FOLDERS------", folders
+	# Save user's Dropbox folder selections to web server DB
+	dropboxAPI.saveUserFolderSelections(folders)
 
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-	userid=request.args.get("name")
-	print "userid is ----- -        ", userid
-	foauth2.fitbitoauth(userid)
-	return render_template("register.html")
+	# If user has already been onboarded, return them to the service authorization page
+	if session['onboarded']:
+		return render_template('service_authorization.html', name=username)
+	# If user has not been fully onboarded, redirect them to the next service authorization option
+	# If this is the last service authorization option available on the list, redirect user to the dashboard
+	else:
+		return redirect('/connect-fitbit')
 
 @app.route('/getdata', methods=['GET', 'POST'])
 def getdata():
@@ -136,10 +272,11 @@ def getdata():
 	aut_cl=fitbit.Fitbit('227NKT','d7a4ececd5e68a5f3f36d64e304fbe25',oauth2=True,access_token=accesstoken,refresh_token=refreshtoken)
 	print "-----------\n-----\n---activities-----\n\n\n"
 	print aut_cl.activities(date='2015-12-24')
-	return render_template("index.html")
+	return render_template("dashboard.html")
 
 @app.route('/connect-fitbit', methods=['GET', 'POST'])
 def fitbithandler():
+	username = escape(session['username'])
 	#call fitbit oauth code here
 	foauth2.fitbitoauth()
 	"""z = fitoauth.Fitbit()
@@ -150,10 +287,18 @@ def fitbithandler():
 	response = z.ApiCall(token, '/1/user/-/activities/log/steps/date/today/7d.json')
 	print "response",response
 	#foauth2.newauth()"""
-	return render_template("index.html")
+
+	# If user has already been onboarded, return them to the service authorization page
+	if session['onboarded']:
+		return render_template('service_authorization.html', name=username)
+	# If user has not been fully onboarded, redirect them to the next service authorization option
+	# If this is the last service authorization option available on the list, redirect user to the dashboard
+	else:
+		return redirect('/connect-lastfm')
 
 @app.route('/fitbit2', methods=['GET', 'POST'])
 def fitbithandler2():
+	username = escape(session['username'])
 	#call fitbit oauth code here
 	#foauth2.fitbitoauth()
 	z = fitoauth.Fitbit()
@@ -164,4 +309,11 @@ def fitbithandler2():
 	response = z.ApiCall(token, '/1/user/-/activities/log/steps/date/today/7d.json')
 	print "response",response
 	#foauth2.newauth()"""
-	return render_template("index.html")
+
+	# If user has already been onboarded, return them to the service authorization page
+	if session['onboarded']:
+		return render_template('service_authorization.html', name=username)
+	# If user has not been fully onboarded, redirect them to the next service authorization option
+	# If this is the last service authorization option available on the list, redirect user to the dashboard
+	else:
+		return redirect('/connect-lastfm')

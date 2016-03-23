@@ -10,5 +10,5 @@ print "configuring now"
 
 #print "APPPP",app['FITBIT_CL_ID']
 from piro import views, models
-#>>> from piro import db
-#>>> db.create_all()
+from piro import db
+db.create_all()

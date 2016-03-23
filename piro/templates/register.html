@@ -1,17 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
+{% block title %}
+	Registration
+{% endblock %}
 
+{% block content %}
+<!--  <h1>Register your device here</h1>
+ <a href="/fitbit"> Fitbit </a> -->
 
-</head>
+ <div class="main-container">
+	<h3>Let's get you registered</h3>
+	<form action="submit-registration" method='post'>
+		<label class="survey-item">What's your name?
+		<input type="text" name="username"></label>
+		<label class="survey-item">What's your email?
+		<input type="text" name="email">
+		</label>
+		<input class="action-button" id="login" type="submit" value="Submit">
+	</form>
+</div>
+{% endblock %}
 
-<body>
-
-    <!-- Navigation -->
-    Register your device here
-    <a href="/fitbit"> Fitbit </a>
-
-</body>
-
-</html>
+{% block scripts %}{% endblock %}

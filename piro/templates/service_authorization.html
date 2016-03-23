@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}
+	App Authorization
+{% endblock %}
+
+{% block header %}
+	{{ super() }}
+	<form action="logout" id="logout">
+		<span id="username">Logged in as {{ name }}</span>
+		<input class="action-button" id="logout-button" type="submit" value="Logout">
+	</form>
+{% endblock %}
+
+{% block content %}
+<h1>Authorize Services</h1>
+
+<div>
+    <a href="/connect-facebook">Connect your Facebook</a>
+</div>
+
+<div>
+	<a href="/connect-dropbox">Connect your Dropbox photos</a>
+</div>
+
+<div>
+    <a href="/connect-fitbit">Connect your Fitbit</a>
+</div>
+
+<div>
+	<a href="/connect-lastfm">Connect your Last.fm</a>
+</div>
+{% endblock %}
+
+{% block scripts %}{% endblock %}
