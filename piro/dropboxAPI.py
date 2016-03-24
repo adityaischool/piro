@@ -244,6 +244,8 @@ def updateFolderSync(userId, folder):
 
 	if folder['checked'] == 'unchecked':
 		dboxUserFolders.update({'$and': [{'userId': userId}, {'path': folder['path']}]}, {'$set': {'sync': False}})
+	elif folder['checked'] == 'checked':
+		dboxUserFolders.update({'$and': [{'userId': userId}, {'path': folder['path']}]}, {'$set': {'sync': True}})
 
 # Download any new files from user's synced folders
 def pollUserSelectedFolders():
@@ -278,7 +280,7 @@ def getFilesFromFolder(folderPath):
 	# Set cursor
 	# NEED TO SET CURSORS FOR EACH FOLDER IN WEB SERVER DB AND CHECK CURSOR FROM THERE INSTEAD OF TXT FILE
 	try:
-		userIdPathQueryResults = dboxUserFolders.find({'$and': [{'userId': userId}, {'path': folder['path']}]})
+		userIdPathQueryResults = dboxUserFolders.find({'$and': [{'userId': userId}, {'path': folderPath}]})
 		for result in userIdPathQueryResults:
 			print 
 			print "------- USERID/PATH QUERY RESULT -------", result

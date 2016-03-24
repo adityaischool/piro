@@ -132,15 +132,15 @@ def submitRegistration():
 			# Finally, redirect user to index
 			return redirect('/index')
 		# If username exists in db already but email doesn't, notify user as such and let them try a new username
-		if (type(usernameQueryResults) == type(None)) and (type(emailQueryResults) == type(None)):
+		elif (type(usernameQueryResults) == type(None)) and (type(emailQueryResults) == type(None)):
 			errors['usernameError'] = True
 			return render_template('register.html', errors=errors)
 		# If email exists in db already but username doesn't, notify user as such and let them try a different email
-		if (type(usernameQueryResults) == type(None)) and (type(emailQueryResults) != type(None)):
+		elif (type(usernameQueryResults) == type(None)) and (type(emailQueryResults) != type(None)):
 			errors['emailError'] = True
 			return render_template('register.html', errors=errors)
 		# If both username and email exist in db already, notify user as such and give them a login button
-		if (type(usernameQueryResults) != type(None)) and (type(emailQueryResults) != type(None)):
+		elif (type(usernameQueryResults) != type(None)) and (type(emailQueryResults) != type(None)):
 			errors['usernameError'] = True
 			errors['emailError'] = True
 			return render_template('register.html', errors=errors)
