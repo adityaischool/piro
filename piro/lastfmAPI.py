@@ -126,6 +126,7 @@ def getUserRecentPlays():
 
 	saveToBox(recentPlaysObject)
 
+# Get a user's complete play history
 def getUserHistoricalPlays():
 	historicalPlaysObject = {'plays': []}
 

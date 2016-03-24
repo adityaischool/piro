@@ -142,6 +142,7 @@ def checkIfPhoto(fileToCheck):
 		else:
 			return False
 	except Exception as e:
+		print
 		print "------- ERROR GETTING FILE METADATA -------", e
 		print fileToCheck
 		return False
@@ -165,11 +166,15 @@ def processPhoto(photoFile):
 		photoDimensions.append(photoMetadata.dimensions.height)
 		photoDimensions.append(photoMetadata.dimensions.width)
 	except Exception as e:
+		print
 		print "------- ERROR GETTING PHOTO DIMENSIONS -------", e
+		print
 	try:
 		photoTimestamp = photoMetadata.time_taken
 	except Exception as e:
+		print
 		print "------- ERROR GETTING PHOTO TIMESTAMP -------", e
+		print
 	# Check if photo has location data
 	if type(photoMetadata.location) != type(None):
 		photoLocation = []
@@ -303,8 +308,13 @@ def getFilesFromFolder(folderPath):
 	# If file is a photo, create a metadata object for the
 	# photo and download the photo 
 	for fileToCheck in files.entries:
-		if checkIfPhoto(fileToCheck.media_info):
-			photoData.append(processPhoto(fileToCheck))
+		try:
+			if checkIfPhoto(fileToCheck.media_info):
+				photoData.append(processPhoto(fileToCheck))
+		except Exception as e:
+			print
+			print "------- ERROR GETTING FILE MEDIA INFO -------", e
+			print
 	# Download each photo to temporary storage on web server
 	for i in range(len(photoData)):
 		downloadFile(photoData[i][0], photoData[i][1]['photoName'])

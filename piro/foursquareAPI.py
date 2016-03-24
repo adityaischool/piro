@@ -1,10 +1,11 @@
-## PACKAGE FOR AUTHORIZING & HITTING THE INSTAGRAM API
+## PACKAGE FOR AUTHORIZING & HITTING THE FOURSQUARE/SWARM API
 
 import md5, base64, requests
 from flask import request, session
 from piro import models, db
 from models import UserDevice,User
 from pprint import pprint
+
 
 
 API_KEY = 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR'
