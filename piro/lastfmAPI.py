@@ -1,4 +1,4 @@
-## PACKAGE FOR HITTING THE LAST.FM API
+## PACKAGE FOR AUTHORIZING & HITTING THE LAST.FM API
 
 import md5, base64, requests
 from flask import request, session

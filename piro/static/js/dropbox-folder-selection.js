@@ -12,7 +12,6 @@ function processCheckboxes(checkboxes) {
 	var folders = {'data': []};
 	checkboxes.each(function() {
 		var checkbox = $(this);
-		console.log(checkbox.attr('data-value'), checkbox.is(':checked'));
 		tempFolder = {};
 		tempFolder['path'] = checkbox.attr('data-value');
 		if (checkbox.is(':checked')) {
@@ -22,10 +21,8 @@ function processCheckboxes(checkboxes) {
 		}
 		folders['data'].push(tempFolder);
 	})
-
-	console.log(folders);
 	var stringifiedPaths = JSON.stringify(folders);
-
+	// Send folder paths & sync selection back to server
 	$.get('/dropbox-user-selected-folders',
 		{paths: stringifiedPaths});
 }

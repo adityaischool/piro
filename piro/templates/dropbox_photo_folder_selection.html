@@ -20,7 +20,6 @@
 <ul id="dropbox-folder-list">
 	{% for folder in folderData %}
 		<li class="dropbox-folder-item"><label><input class="dropbox-folder-item-checkbox" type="checkbox" data-value="{{ folder.path }}" value="{{ folder.name }}">{{ folder.name }}</label></li>
-		<!-- <li data-value="{{ folder.path }}">{{ folder.name }}</li> -->
 	{% endfor %}
 </ul>
 <button id="submit-dropbox-folders">Select Folders</button>

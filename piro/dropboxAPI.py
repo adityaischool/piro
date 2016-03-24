@@ -1,4 +1,4 @@
-## PACKAGE FOR HITTING THE DROPBOX API
+## PACKAGE FOR AUTHORIZING & HITTING THE DROPBOX API
 
 import os, requests, dropbox, json, pymongo
 from flask import request, session

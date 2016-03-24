@@ -4,7 +4,7 @@ from piro import models,db
 from piro.models import UserDevice
 #import fitoauth
 
-def fitbitoauth(userid):
+def fitbitoauth(userId):
 	CLIENT_ID = '227NKT'
 	CLIENT_SECRET = 'd7a4ececd5e68a5f3f36d64e304fbe25'
 
@@ -13,7 +13,7 @@ def fitbitoauth(userid):
 
 	access_token = server.oauth.token['access_token']
 	refresh_token = server.oauth.token['refresh_token']
-	user_device=UserDevice(userid, "Fitbit", access_token, refresh_token)
+	user_device=UserDevice(userId, "fitbit", None, None, access_token, refresh_token)
 	#print "\n -----------\n-----------\n obtained user device", user_device
 	db.session.add(user_device)
 	db.session.commit()
