@@ -1,0 +1,18 @@
+MongoDB Setup:
+
+
+paste these into the cmd line:
+
+cd c:\Program Files\MongoDB 2.6 Standard\bin
+
+
+mongod --dbpath "c:/Users/brnr0_000/Dropbox/GradSchool/Spring2016/FinalProject/piro/piro/mongo/data"
+
+Local Server Setup:
+
+
+for switching to directory in shell:
+
+cd c:/Users/brnr0_000/Dropbox/Swoop
+
+python run.py

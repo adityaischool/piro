@@ -1,8 +1,9 @@
 ## PACKAGE FOR HITTING THE LAST.FM API
 
 import md5, base64, requests
-from flask import request
-# from models import UserDevice,User
+from flask import request, session
+from piro import models, db
+from models import UserDevice,User
 from pprint import pprint
 
 
@@ -25,26 +26,49 @@ def getAuthCallback():
 # call other last.fm methods that do not require
 # authorization (they only require a username)
 def getUserName(token):
-	signature = lastfmSignatureGen(token)
-	print
-	print "--------- SIGNATURE -------", signature
-	print
+	userId = session['userId']
+	# Generate md5-hashed signature per Last.fm's authorization requirements
+	try:
+		signature = lastfmSignatureGen(token)
+		print
+		print "--------- SIGNATURE -------", signature
+		print
+	except Exception as e:
+		print
+		print "------- ERROR GETTING LAST.FM AUTH SIGNATURE -------", e
+		print
+	# Hit Last.fm API for user authorization
+	try:
+		requestUrlRaw = 'http://ws.audioscrobbler.com/2.0/?method=auth.getsession&api_key='+API_KEY+'&token='+token+'&api_sig='+signature+'&format=json'
+		requestUrlEncoded = requestUrlRaw.decode('utf-8').encode('utf-8')
 
-	requestUrlRaw = 'http://ws.audioscrobbler.com/2.0/?method=auth.getsession&api_key='+API_KEY+'&token='+token+'&api_sig='+signature+'&format=json'
-	requestUrlEncoded = requestUrlRaw.decode('utf-8').encode('utf-8')
-
-	getAuthSession = requests.get(requestUrlEncoded)
-	jsonResponse = getAuthSession.json()
-	print
-	print "------- AUTH SESSION RESPONSE -------"
-	pprint(jsonResponse)
-	print
-
-	lastfmUsername = jsonResponse['session']['name']
-	print "------- LAST.FM USERNAME -------", lastfmUsername
-	print
-
-	# NEED TO WRITE USERNAME TO DB FOR FUTURE REFERENCE
+		getAuthSession = requests.get(requestUrlEncoded)
+	except Exception as e:
+		print "------- ERROR AUTHORIZING USER WITH LAST.FM -------", e
+	# Parse Last.fm user authorization response	
+	try:
+		jsonResponse = getAuthSession.json()
+		print
+		print "------- AUTH SESSION RESPONSE -------"
+		pprint(jsonResponse)
+		print
+		lastfmUsername = jsonResponse['session']['name']
+		print "------- LAST.FM USERNAME -------", lastfmUsername
+		print
+	except Exception as e:
+		print
+		print "------- ERROR PARSING LAST.FM USER AUTH RESPONSE -------", e
+		print
+	# Now write the user's Last.fm username to the web server db
+	try:
+		userDevice = UserDevice(userId, 'lastfm', lastfmUsername, None, None, None)
+		# Add and commit newly created User db record
+		db.session.add(userDevice)
+		db.session.commit()
+	except Exception as e:
+		print
+		print "------- ERROR WRITING LAST.FM USERNAME TO DB -------", e
+		print
 
 # Function for generating an md5-hashed signature,
 # required by last.fm API for an auth session
@@ -52,27 +76,29 @@ def getUserName(token):
 def lastfmSignatureGen(token):
 	token = token
 	method = 'auth.getsession'
-
+	# Concatenate unsigned params in alphabetical order per Last.fm's requirements
 	unsignedParams = "api_key" + API_KEY + \
 	"method" + method + \
 	"token" + token
-	
+	# Encode unsigned params, then tack on app secret
 	unsignedParams.encode('utf-8')
 	unsignedParams += SECRET
-
+	# Generate md5 hash and update with unsigned params
 	m = md5.new()
 	m.update(unsignedParams)
 	return m.hexdigest()
 
 def callAPI(page=None):
-	# NEED TO ADD LOGIC GETTING USER'S LAST.FM USER ID FROM DB
-	userId = 'brnr07'
+	userId = session['userId']
+	userIdQueryResults = UserDevice.query.filter_by(userid=userId, devicetype='lastfm').first()
+	userDeviceDict = userIdQueryResults.__dict__
+	userLastfmUsername = userDeviceDict['deviceusername']
 	method = "user.getrecenttracks"
 	amp = "&"
 
 	constructedURL = BASE_URL + '?' + \
 	"method=" + method + amp + \
-	"user=" + userId + amp + \
+	"user=" + userLastfmUsername + amp + \
 	"api_key=" + API_KEY + amp + \
 	"format=json" + amp + \
 	"limit=200"
@@ -161,6 +187,7 @@ def processTrack(track):
 def saveToBox(trackPlaybackObject):
 	print trackPlaybackObject
 	# NEED TO ADD LOGIC TO ENCRYPT & WRITE OBJECT DATA TO THE BOX
+	# ALSO NEED LOGIC TO SAVE TO WEB SERVER TEMPORARILY IN CASE BOX IS UNREACHABLE (DELETE FROM WEB SERVER AFTER SUCCESSFULLY WRITING TO BOX)
 
 
 if __name__ == '__main__':

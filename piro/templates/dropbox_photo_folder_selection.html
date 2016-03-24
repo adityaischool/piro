@@ -5,6 +5,14 @@
 	Select Dropbox Folders
 {% endblock %}
 
+{% block header %}
+	{{ super() }}
+	<form action="logout" id="logout">
+		<span id="username">Hi, {{ name }}!</span>
+		<input class="action-button" id="logout-button" type="submit" value="Logout">
+	</form>
+{% endblock %}
+
 {% block content %}
 <h1>Select Dropbox folders from which to pull photos</h1>
 

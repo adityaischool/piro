@@ -24,11 +24,23 @@ def land():
 		username = escape(session['username'])
 		onboarded = session['onboarded']
 		if onboarded:
-			return render_template('dashboard.html', name=username)
+			return redirect('/dashboard')
 		else:
-			return render_template('service_authorization.html', name=username)
+			return redirect('/service_authorization')
 	else:
 		return render_template('login.html', errors=None)
+
+@app.route('/service_authorization')
+def serviceAuthorization():
+	username = escape(session['username'])
+	userId = session['userId']
+	return render_template('service_authorization.html', name=username)
+
+@app.route('/dashboard')
+def dashboard():
+	username = escape(session['username'])
+	userId = session['userId']
+	return render_template('dashboard.html', name=username)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -44,10 +56,10 @@ def login():
 			print "------- USER DB RECORD -------", usernameQueryResultsDict
 			print
 			# If username in db, set session object with username and userId
-			username = queryResultsDict['user']
-			userId = queryResultsDict['userid']
-			email = queryResultsDict['email']
-			onboarded = queryResultsDict['onboarded']
+			username = usernameQueryResultsDict['name']
+			userId = usernameQueryResultsDict['userid']
+			email = usernameQueryResultsDict['email']
+			onboarded = usernameQueryResultsDict['onboarded']
 			session['username'] = username
 			session['userId'] = userId
 			session['email'] = email
@@ -56,7 +68,7 @@ def login():
 		# If username not in db, notify user that the username does not exist - let them reenter
 		else:
 			errors['usernameError'] = True
-			render_template('login.html', errors=errors)
+			return render_template('login.html', errors=errors)
 
 # Generates an md5 hash from the user name, email, & a random number
 def generateUserId(userName, email):
@@ -82,6 +94,7 @@ def register():
 	# foauth2.fitbitoauth(userid)
 	return render_template("register.html", errors=None)
 
+# Handler for submitting user registration info
 @app.route('/submit-registration', methods=['GET', 'POST'])
 def submitRegistration():
 	errors = {}
@@ -91,15 +104,10 @@ def submitRegistration():
 		userId = ''
 		user = ''
 		onboarded = False
-
 		# First check if username or email in web server db
 		# TODO: ADD LOGIC FOR PASSWORDS LATER
 		usernameQueryResults = User.query.filter_by(name=username).first()
 		emailQueryResults = User.query.filter_by(email=email).first()
-
-		print type(usernameQueryResults)
-		print type(emailQueryResults)
-
 		# Check if username and email are in web server db yet
 		# If neither are in web server db, proceed with registration
 		if (type(usernameQueryResults) == type(None)) and (type(emailQueryResults) == type(None)):
@@ -110,6 +118,8 @@ def submitRegistration():
 			# Generate unique userId
 			userId = generateUserId(username, email)
 			# Create User db record
+
+			# TODO: GET USER'S ACTUAL PI MAC ADDRESSS
 			user = User(userId, username, email, onboarded, '0000000000000000')
 			# Add and commit newly created User db record
 			db.session.add(user)
@@ -187,7 +197,6 @@ def connectLastFm():
 	
 @app.route('/lastfm-token')
 def lastfmToken():
-	username = escape(session['username'])
 	token = request.args.get('token')
 	print "--------- TOKEN --------- ", token
 	lastfmAPI.getUserName(token)
@@ -195,12 +204,13 @@ def lastfmToken():
 
 	# If user has already been onboarded, return them to the service authorization page
 	if session['onboarded']:
-		return render_template('service_authorization.html', name=username)
+		return redirect('/service_authorization')
 	# If user has not been fully onboarded, redirect them to the next service authorization option
 	# If this is the last service authorization option available on the list, redirect user to the dashboard
 	else:
-		changeUserOnboardedStatus()
-		return render_template('dashboard.html')
+		# TODO: UNCOMMENT THIS WHEN DONE MAKING CHANGES TO SERVICE AUTH FLOW
+		#changeUserOnboardedStatus()
+		return redirect('/dashboard')
 
 # Once a user is finished onboarding (i.e., they have gone through all of the service authorization options),
 # change their onboarded status in the db to True
@@ -214,43 +224,55 @@ def changeUserOnboardedStatus():
 
 @app.route('/connect-dropbox')
 def connectDropbox():
-	api_key = dropboxAPI.getAPIKey()
-	print
-	print '---------- API KEY ---------', api_key
-	callback_redirect = dropboxAPI.getAuthCallback()
-	print
-	print '---------- CALLBACK REDIRECT --------', callback_redirect
-	print
-	return redirect('https://www.dropbox.com/1/oauth2/authorize?response_type=code&client_id='+api_key+'&redirect_uri='+callback_redirect)
+	api_key = ''
+	callback_redirect = ''
+	# First check if Dropbox has already been authorized by user
+	dropboxCheck = dropboxAPI.checkIfDropboxAuthorized()
+	# If Dropbox already authorized, redirect to Dropbox photo folder selection page
+	if dropboxCheck[0]:
+		return redirect('/dropbox-photo-folder-selection')
+	# If Dropbox not yet authorized, begin authorization flow
+	else:
+		api_key = dropboxAPI.getAPIKey()
+		print
+		print '---------- API KEY ---------', api_key
+		callback_redirect = dropboxAPI.getAuthCallback()
+		print
+		print '---------- CALLBACK REDIRECT --------', callback_redirect
+		print
+		return redirect('https://www.dropbox.com/1/oauth2/authorize?response_type=code&client_id='+api_key+'&redirect_uri='+callback_redirect)
 
 @app.route('/dropbox-token')
 def dropboxToken():
 	code = request.args.get('code')
-	print "--------- CODE --------- ", code
-	token = dropboxAPI.codeFlow(code)
-
-	return redirect(url_for('dropbox-photo-folder-selection'))
+	print
+	print "--------- DROPBOX CODE --------- ", code
+	print
+	dropboxAPI.codeFlow(code)
+	return redirect('/dropbox-photo-folder-selection')
 
 @app.route('/dropbox-photo-folder-selection')
 def dropboxPhotoFolderSelection():
+	username = escape(session['username'])
+	dropboxAPI.setDboxApiObj()
 	folderData = dropboxAPI.getUserFolders()
 	# REDIRECT TO PAGE THAT ALLOWS USER TO SELECT FOLDERS WITH PHOTOS
-	return render_template('dropbox_photo_folder_selection.html', folderData=folderData)
+	return render_template('dropbox_photo_folder_selection.html', name=username, folderData=folderData)
 
 @app.route('/dropbox-user-selected-folders', methods=['GET', 'POST'])
 def dropboxUserSelectedFolders():
-	username = escape(session['username'])
+	# Get folders from GET request
 	folders = request.args.get('paths')
-	print "------ FOLDERS------", folders
 	# Save user's Dropbox folder selections to web server DB
 	dropboxAPI.saveUserFolderSelections(folders)
-
 	# If user has already been onboarded, return them to the service authorization page
 	if session['onboarded']:
-		return render_template('service_authorization.html', name=username)
+		return redirect('/service_authorization')
 	# If user has not been fully onboarded, redirect them to the next service authorization option
 	# If this is the last service authorization option available on the list, redirect user to the dashboard
 	else:
+		# Poll selected folders and download photos
+		dropboxAPI.pollUserSelectedFolders()
 		return redirect('/connect-fitbit')
 
 @app.route('/getdata', methods=['GET', 'POST'])
@@ -272,11 +294,10 @@ def getdata():
 	aut_cl=fitbit.Fitbit('227NKT','d7a4ececd5e68a5f3f36d64e304fbe25',oauth2=True,access_token=accesstoken,refresh_token=refreshtoken)
 	print "-----------\n-----\n---activities-----\n\n\n"
 	print aut_cl.activities(date='2015-12-24')
-	return render_template("dashboard.html")
+	return redirect('/dashboard')
 
 @app.route('/connect-fitbit', methods=['GET', 'POST'])
 def fitbithandler():
-	username = escape(session['username'])
 	#call fitbit oauth code here
 	foauth2.fitbitoauth()
 	"""z = fitoauth.Fitbit()
@@ -290,7 +311,7 @@ def fitbithandler():
 
 	# If user has already been onboarded, return them to the service authorization page
 	if session['onboarded']:
-		return render_template('service_authorization.html', name=username)
+		return redirect('/service_authorization')
 	# If user has not been fully onboarded, redirect them to the next service authorization option
 	# If this is the last service authorization option available on the list, redirect user to the dashboard
 	else:
@@ -298,7 +319,6 @@ def fitbithandler():
 
 @app.route('/fitbit2', methods=['GET', 'POST'])
 def fitbithandler2():
-	username = escape(session['username'])
 	#call fitbit oauth code here
 	#foauth2.fitbitoauth()
 	z = fitoauth.Fitbit()
@@ -312,7 +332,7 @@ def fitbithandler2():
 
 	# If user has already been onboarded, return them to the service authorization page
 	if session['onboarded']:
-		return render_template('service_authorization.html', name=username)
+		return redirect('/service_authorization')
 	# If user has not been fully onboarded, redirect them to the next service authorization option
 	# If this is the last service authorization option available on the list, redirect user to the dashboard
 	else:

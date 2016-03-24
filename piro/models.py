@@ -13,33 +13,46 @@ class User(db.Model):
     # You need to a relationship to Address table here
     # see http://flask-sqlalchemy.pocoo.org/2.1/models/#one-to-many-relationships
     def __init__(self, userid, name, email, onboarded, userpimac):
-        self.userid=userid
+        self.userid = userid
         self.name = name
         self.email = email
         self.onboarded = onboarded
-        self.userpimac=userpimac
+        self.userpimac = userpimac
     def __repr__(self):
-        return 'userid'+self.userid+'userpimac'+self.userpimac
+        return "<User %r>" % self.name+\
+        "---userid="+self.userid+\
+        "---user-email="+self.email+\
+        "---onboarded="+self.onboarded+\
+        "---userpimac="+self.userpimac
 
 class UserDevice(db.Model):
     userid = db.Column(db.String(120), primary_key=True)#ss
-    devicetype = db.Column(db.String(120)) #device example = Fitbit
-    accesstoken=db.Column(db.String(120))#ss1 can also be app to fitbitARI
-    refreshtoken=db.Column(db.String(120))#ss2
+    devicetype = db.Column(db.String(120), primary_key=True) #device example = Fitbit
+    deviceusername = db.Column(db.String(120))
+    deviceuserid = db.Column(db.String(120))
+    accesstoken = db.Column(db.String(120))#ss1 can also be app to fitbitARI
+    refreshtoken = db.Column(db.String(120))#ss2
     # You need to a relationship to Address table here
     # see http://flask-sqlalchemy.pocoo.org/2.1/models/#one-to-many-relationships
-    def __init__(self, userid, devicetype, accesstoken, refreshtoken=None):
-        self.userid=userid
+    def __init__(self, userid, devicetype, deviceusername=None, deviceuserid=None, accesstoken=None, refreshtoken=None):
+        self.userid = userid
         self.devicetype = devicetype
+        self.deviceusername = deviceusername
+        self.deviceuserid = deviceuserid
         self.accesstoken = accesstoken
         self.refreshtoken = refreshtoken
     def __repr__(self):
-        return '<Customer %r>' % self.userid+"---access-token=--"+self.accesstoken+"---reftoken=--"+self.refreshtoken
+        return "<User %r>" % self.userid+\
+        "---device-type="+self.devicetype+\
+        "---device-username="+self.deviceusername+\
+        "---device-userid="+self.deviceuserid+\
+        "---access-token="+self.accesstoken+\
+        "---refresh-token="+self.refreshtoken
 
 
 """ 
 Dropbox folder table
 userid
 dropbox folder paths to sync
-
+maybe do this in mongo since we don't know the names of or how many folders users will be syncing?
 """

@@ -7,7 +7,7 @@
 {% block header %}
 	{{ super() }}
 	<form action="logout" id="logout">
-		<span id="username">Logged in as {{ name }}</span>
+		<span id="username">Hi, {{ name }}!</span>
 		<input class="action-button" id="logout-button" type="submit" value="Logout">
 	</form>
 {% endblock %}
