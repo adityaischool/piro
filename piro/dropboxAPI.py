@@ -39,7 +39,7 @@ def checkIfDropboxAuthorized():
 		print
 		return [False, None]
 
-# Get Dropbox token from db and instantiate Dropbox API object
+# Get Dropbox token from web server db and instantiate Dropbox API object
 def setDboxApiObj():
 	global dbox
 	dropboxCheckResponse = checkIfDropboxAuthorized()
@@ -159,12 +159,12 @@ def processPhoto(photoFile):
 	# Initialize & set photo metadata values
 	photoName = photoFile.name
 	photoDropboxId = photoFile.id.split(':')[1]
-	photoDimensions = []
+	photoDimensions = {}
 	photoTimestamp = ''
 	photoLocation = None
 	try:
-		photoDimensions.append(photoMetadata.dimensions.height)
-		photoDimensions.append(photoMetadata.dimensions.width)
+		photoDimensions['width'] = photoMetadata.dimensions.width
+		photoDimensions['height'] = photoMetadata.dimensions.height
 	except Exception as e:
 		print
 		print "------- ERROR GETTING PHOTO DIMENSIONS -------", e
@@ -177,9 +177,9 @@ def processPhoto(photoFile):
 		print
 	# Check if photo has location data
 	if type(photoMetadata.location) != type(None):
-		photoLocation = []
-		photoLocation.append(photoMetadata.location.latitude)
-		photoLocation.append(photoMetadata.location.longitude)
+		photoLocation = {}
+		photoLocation['lat'] = photoMetadata.location.latitude
+		photoLocation['long'] = photoMetadata.location.longitude
 	# Set photoMetadata object key-value pairs
 	photoMetadataObj['photoName'] = photoName
 	photoMetadataObj['photoPath'] = '../photos/'+photoName

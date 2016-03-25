@@ -1,11 +1,15 @@
 ## PACKAGE FOR AUTHORIZING & HITTING THE LAST.FM API
 
-import md5, base64, requests
+import md5, base64, requests, pymongo
 from flask import request, session
 from piro import models, db
 from models import UserDevice,User
 from pprint import pprint
 
+# Instantiate Mongo client
+client = pymongo.MongoClient()
+mongoDb = client.lastfm
+recentSongPlaysDb = mongoDb.lastfmRecentSongPlaysDb
 
 API_KEY = '070094824815e5b8dc5fcfbc5a2f723f'
 SECRET = '3afa4374733f63f58bd6e5b5962cbbb6'
@@ -70,6 +74,42 @@ def getUserName(token):
 		print "------- ERROR WRITING LAST.FM USERNAME TO DB -------", e
 		print
 
+# Display Mongo contents
+def getMongoFolderContents():
+	userId = session['userId']
+	print
+	print "------- A LIST OF ALL USERS & THEIR LAST LAST.FM SONG PLAYBACK TIMESTAMPS -------"
+	for user in recentSongPlaysDb.find({}):
+		print
+		print "------- User ---------------", user['userId']
+		print "------- lastSongPlaybackTimestamp -------", user['lastSongPlaybackTimestamp']
+
+# Reset user's most recent playback timestamp record in Mongo - useful for testing or if user wants to redownload their data
+def resetMostRecentPlaybackTimestamp():
+	userId = session['userId']
+	recentSongPlaysDb.update({'userId': userId}, {'$set': {'lastSongPlaybackTimestamp': 0}})	
+
+# Hits Mongo to find & return the timestamp of the user's most recent songg playback
+def getLastCheckinTimestamp():
+	userId = session['userId']
+	lastSongPlaybackTimestamp = 0
+	# Check if user has a Last.fm record in Mongo
+	userIdQueryResults = recentSongPlaysDb.find({'userId': userId})
+	# If user doesn't yet have a record, create one for them with a lastCheckinTimestamp value of 0
+	if userIdQueryResults.count() == 0:
+		recentSongPlaysDb.insert({
+			'userId': userId,
+			'lastSongPlaybackTimestamp': 0
+			})
+	# If user does have a record, get the mostRecentItemId value - this should represent the newest post we have stored on the pi box for the user
+	else:
+		for user in userIdQueryResults:
+			lastSongPlaybackTimestamp = user['lastSongPlaybackTimestamp']
+			print
+			print '------- MOST RECENT SONG PLAYBACK TIMESTAMP FOR USER', userId, '-------', lastSongPlaybackTimestamp
+			print
+	return lastSongPlaybackTimestamp
+
 # Function for generating an md5-hashed signature,
 # required by last.fm API for an auth session
 # takes a token, provided by the last.fm auth sequence
@@ -88,71 +128,84 @@ def lastfmSignatureGen(token):
 	m.update(unsignedParams)
 	return m.hexdigest()
 
-def callAPI(page=None):
+# Function to call the Last.fm API
+def callAPI(page=None, fromTimestamp=0):
+	page = page
 	userId = session['userId']
 	userIdQueryResults = UserDevice.query.filter_by(userid=userId, devicetype='lastfm').first()
 	userDeviceDict = userIdQueryResults.__dict__
 	userLastfmUsername = userDeviceDict['deviceusername']
 	method = "user.getrecenttracks"
-	amp = "&"
 
-	constructedURL = BASE_URL + '?' + \
-	"method=" + method + amp + \
-	"user=" + userLastfmUsername + amp + \
-	"api_key=" + API_KEY + amp + \
-	"format=json" + amp + \
-	"limit=200"
+	params = {
+	'method': method,
+	'user': userLastfmUsername,
+	'api_key': API_KEY,
+	'format': 'json',
+	'limit': 200,
+	}
 
 	if page:
-		constructedURL += ("&page=" + str(page))
-		print "----- CONSTRUCTED URL -------", constructedURL
+		params['page'] = page
+	if fromTimestamp > 0:
+		params['from'] = fromTimestamp
 
 	try:
-		response = requests.get(constructedURL)
-		return response
+		response = requests.get(BASE_URL, params=params)
+		decodedResponse = response.json()
+		return decodedResponse
 	except Exception as e:
 		print
 		print "------- ERROR HITTING LAST.FM API -------", e
 
-# Get a given user's recent tracks, optionally by date
-def getUserRecentPlays():
-	recentPlaysObject = {'plays': []}
-
-	response = callAPI()
-	# Extract track info
-	for track in response.json()['recenttracks']['track']:
-		processedTrack = processTrack(track)
-		recentPlaysObject['plays'].append(processedTrack)
-
-	saveToBox(recentPlaysObject)
-
-# Get a user's complete play history
+# Get a user's play history starting with the most recently captured song playback timestamp, if available
 def getUserHistoricalPlays():
-	historicalPlaysObject = {'plays': []}
-
+	# resetMostRecentPlaybackTimestamp()
+	historicalPlaysObject = {'data': []}
+	fromTimestamp = getLastCheckinTimestamp()
+	mostRecentlyPlayedTimestamp = fromTimestamp
 	page = 1
+	# Go through each page of API results and process tracks until we process all new tracks
 	while True:
 		try:
-			response = callAPI(page)
-			# Extract track info
-			for track in response.json()['recenttracks']['track']:
-				processedTrack = processTrack(track)
-				historicalPlaysObject['plays'].append(processedTrack)
-				page += 1
-
-		# Break out of loop if error, or if page does not exist (reached end of historical tracks)
+			decodedResponse = callAPI(page, fromTimestamp)
+			responseTracks = decodedResponse['recenttracks']['track']
+			# Check to make sure response has playback songs - break loop if no more songs to process
+			if len(responseTracks) > 0:
+				# Extract track info
+				for track in responseTracks:
+					processedTrack = processTrack(track)
+					if processedTrack['playbackTimestamp'] > mostRecentlyPlayedTimestamp:
+						mostRecentlyPlayedTimestamp = processedTrack['playbackTimestamp']
+					historicalPlaysObject['data'].append(processedTrack)
+					page += 1
+			else:
+				print
+				print '------- NO MORE RECENT SONG PLAYBACKS! -------'
+				print
+				break
 		except Exception as e:
 			print
-			print "------ ERROR -------", e
+			print "------ ERROR GETTING LAST.FM SONG PLAYBACK DATA -------", e
 			break
-
+	# Update Mongo with mostRecentlyPlayedTimestamp
+	updateMongoMostRecentSongPlaybackTimestamp(int(mostRecentlyPlayedTimestamp)+1)
 	print
-	print "---------- THERE WERE", page, "PAGES OF HISTORICAL TRACKS FOR THIS USER -----------"
+	print "---------- THERE WERE", len(historicalPlaysObject['data']), "NEW SONG PLAYBACKS -----------"
 	print
-
+	# Send processed track data to pi box
 	saveToBox(historicalPlaysObject)
 
+# Function to update Mongo with mostRecentlyPlayedTimestamp
+def updateMongoMostRecentSongPlaybackTimestamp(mostRecentlyPlayedTimestamp):
+	userId = session['userId']
+	recentSongPlaysDb.update({'userId': userId}, {'$set': {'lastSongPlaybackTimestamp': mostRecentlyPlayedTimestamp}})
+	# Verify Mongo update
+	getMongoFolderContents()
+
+# Extract & bundle relevant data for given track
 def processTrack(track):
+	processedTrack = {}
 	try:
 		trackName = track['name'].encode('utf-8')
 	except Exception as e:
@@ -169,24 +222,18 @@ def processTrack(track):
 		imageUrl = track['image'][1]['#text']
 	except Exception as e:
 		print "----- ERROR GETTING TRACK IMAGE URL -----", e
-
-	# print 
-	# print "TRACK NAME:", trackName
-	# print "TRACK ARTIST:", trackArtist
-	# print "PLAYBACK TIMESTAMP:", playbackTimestamp
-	# print "TRACK IMAGE URL:", imageUrl
-
-	processedTrack = {}
+	# Populate processed track object
 	processedTrack['trackName'] = trackName
 	processedTrack['trackArtist'] = trackArtist
 	processedTrack['playbackTimestamp'] = playbackTimestamp
 	processedTrack['imageUrl'] = imageUrl
-
+	# Return processed track
 	return processedTrack
 
 
 def saveToBox(trackPlaybackObject):
-	print trackPlaybackObject
+	pass
+	# print trackPlaybackObject
 	# NEED TO ADD LOGIC TO ENCRYPT & WRITE OBJECT DATA TO THE BOX
 	# ALSO NEED LOGIC TO SAVE TO WEB SERVER TEMPORARILY IN CASE BOX IS UNREACHABLE (DELETE FROM WEB SERVER AFTER SUCCESSFULLY WRITING TO BOX)
 

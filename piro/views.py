@@ -145,6 +145,22 @@ def submitRegistration():
 			errors['emailError'] = True
 			return render_template('register.html', errors=errors)
 
+@app.route('/test-api')
+def testAPIButton():
+	# instagramAPI.getAllNewPosts()
+	#foursquareAPI.getUserCheckinHistory()
+	lastfmAPI.getUserHistoricalPlays()
+	return redirect('service_authorization')
+
+# A function to be called to poll all of user's authorized apps/services
+# Set this up on a Cron??? - maybe set this up to instead update all users for a given service at once instead of all services for a given user? Would this cause rate limit issues?
+def updateAllUserAuthorizedServices():
+	# TODO: PUT IN LOGIC TO ONLY HIT SERVICES THAT A USER HAS AUTHORIZED
+	instagramAPI.getAllNewPosts()
+	foursquareAPI.getUserCheckinHistory()
+	dropboxAPI.pollUserSelectedFolders()
+	lastfmAPI.getUserRecentPlays()
+
 @app.route('/connect-facebook', methods=['GET', 'POST'])
 def connectFacebook():
 	return render_template("connect_facebook.html")
