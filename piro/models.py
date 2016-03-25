@@ -49,10 +49,3 @@ class UserDevice(db.Model):
         "---access-token="+self.accesstoken+\
         "---refresh-token="+self.refreshtoken
 
-
-""" 
-Dropbox folder table
-userid
-dropbox folder paths to sync
-maybe do this in mongo since we don't know the names of or how many folders users will be syncing?
-"""

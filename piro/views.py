@@ -145,6 +145,7 @@ def submitRegistration():
 			errors['emailError'] = True
 			return render_template('register.html', errors=errors)
 
+# USE THIS FOR TESTING DIFFERENT API FUNCTIONALITY
 @app.route('/test-api')
 def testAPIButton():
 	# instagramAPI.getAllNewPosts()
