@@ -191,7 +191,6 @@ def processPhoto(photoFile):
 
 # Save the user's selected Dropbox folders to sync
 def saveUserFolderSelections(folders):
-	global dboxUserFolders
 	folders = json.loads(folders)['data']
 	userId = session['userId']
 	print
@@ -215,9 +214,8 @@ def saveUserFolderSelections(folders):
 	# Display updated Mongo contents
 	getMongoFolderContents()
 
-# Display Mongo contents
+# Display Mongo contents for user
 def getMongoFolderContents():
-	global dboxUserFolders
 	userId = session['userId']
 	print
 	print "------- A LIST OF THE USER'S FOLDERS, SYNC SETTINGS, & CURSORS -------"
@@ -226,12 +224,32 @@ def getMongoFolderContents():
 		print "------- Path -------", folder['path']
 		print "------- Sync -------", folder['sync']
 		print "------- Cursor -----", folder['cursor']
-		print 
+		print
+
+# Reset user's given folder path cursor in Mongo
+# If no folder path given, will reset all folder cursors, so be careful in using this!
+# Useful for testing or if user wants to redownload things from a certain folder or everything
+def resetUserFolderCursors(path=None):
+	userId = session['userId']
+	# If folder path given, reset only that folder's cursor
+	if path is not None:
+		print
+		print '------- PATH GIVEN, RESETTING CURSOR AT PATH', path, '-------'
+		print
+		dboxUserFolders.update({'$and': [{'userId': userId}, {'path': path}]}, {'$set': {'cursor': ''}})
+	# If no folder path given, reset cursors for all folders
+	else:
+		print
+		print '------- PATH NOT GIVEN, RESETTING ALL CURSORS -------'
+		print
+		for result in dboxUserFolders.find({'userId': userId}):
+			print "RESULT_------------", result
+		dboxUserFolders.update({'userId': userId}, {'$set': {'cursor': ''}}, upsert=False, multi=True)	
+	# Verify changes to Mongo
+	getMongoFolderContents()
 
 # Create a new folder to be synced
 def createNewSyncedFolder(userId, folder):
-	global dboxUserFolders
-
 	# Return if folder is unchecked and not yet tracked
 	if folder['checked'] == 'unchecked':
 		return
@@ -245,8 +263,6 @@ def createNewSyncedFolder(userId, folder):
 
 # Update a folder's sync setting, if changed
 def updateFolderSync(userId, folder):
-	global dboxUserFolders
-
 	if folder['checked'] == 'unchecked':
 		dboxUserFolders.update({'$and': [{'userId': userId}, {'path': folder['path']}]}, {'$set': {'sync': False}})
 	elif folder['checked'] == 'checked':
@@ -255,7 +271,15 @@ def updateFolderSync(userId, folder):
 # Download any new files from user's synced folders
 def pollUserSelectedFolders():
 	userId = session['userId']
-	folderPaths = []
+	# Get a user's selected folder paths to sync
+	folderPaths = getUserSelectedFolders(userId)
+	# Iterate through each 
+	for folderPath in folderPaths['folders']:
+		getFilesFromFolder(folderPath)
+
+# Get and return a user's selected folder paths to sync
+def getUserSelectedFolders(userId):
+	folderPaths = {'folders': []}
 	print "------- A LIST OF THE USER'S FOLDERS SET TO SYNC -------"
 	# Get user's Dropbox folders that are set to be synced
 	for folder in dboxUserFolders.find({'$and': [{'userId': userId}, {'sync': True}]}):
@@ -264,16 +288,29 @@ def pollUserSelectedFolders():
 		print "------- Sync -------", folder['sync']
 		print "------- Cursor -----", folder['cursor']
 		print
-		folderPaths.append(folder['path'])
-	# Get all of the photos from synced folders
-	for folderPath in folderPaths:
-		getFilesFromFolder(folderPath)
+		folderPaths['folders'].append(folder['path'])
+	return folderPaths
 
 # Update folder objects in Mongo with latest cursors
 def updateFolderCursor(userId, folderPath, cursor):
 	dboxUserFolders.update({'$and': [{'userId': userId}, {'path': folderPath}]}, {'$set': {'cursor': cursor}})
 	# Display updated Mongo contents
 	getMongoFolderContents()
+
+# Get the latest files from the specified folder path using the existing cursor
+def existingCursorGetFilesFlow(cursor, userId, folderPath):
+	files = dbox.files_list_folder_continue(cursor)
+	newCursor = files.cursor
+	# Now update the folder cursor
+	updateFolderCursor(userId, folderPath, newCursor)
+	return files
+
+# Get all files from specified Dropbox folder if no cursor exists or if cursor has been reset to 0
+def newCursorGetFilesFlow(userId, folderPath):
+	files = dbox.files_list_folder(folderPath, include_media_info=True)
+	cursor = files.cursor
+	updateFolderCursor(userId, folderPath, cursor)
+	return files
 
 # Gets a list of all photo files in the given folder then downloads them
 def getFilesFromFolder(folderPath):
@@ -282,8 +319,6 @@ def getFilesFromFolder(folderPath):
 	cursor = ''
 	files = ''
 	# If cursor exists, use cursor to get latest files. Otherwise, get all files from folder
-	# Set cursor
-	# NEED TO SET CURSORS FOR EACH FOLDER IN WEB SERVER DB AND CHECK CURSOR FROM THERE INSTEAD OF TXT FILE
 	try:
 		userIdPathQueryResults = dboxUserFolders.find({'$and': [{'userId': userId}, {'path': folderPath}]})
 		for result in userIdPathQueryResults:
@@ -291,33 +326,45 @@ def getFilesFromFolder(folderPath):
 			print "------- USERID/PATH QUERY RESULT -------", result
 			print
 			cursor = result['cursor']
-			files = dbox.files_list_folder_continue(cursor)
-			newCursor = files.cursor
-			# Now update the folder cursor
-			updateFolderCursor(userId, folderPath, newCursor)
+			# Cursor might have been reset to 0, so check if it's 0
+			if cursor != '':
+				files = existingCursorGetFilesFlow(cursor, userId, folderPath)
+				# files = dbox.files_list_folder_continue(cursor)
+				# newCursor = files.cursor
+				# # Now update the folder cursor
+				# updateFolderCursor(userId, folderPath, newCursor)
+			elif cursor == '':
+				files = newCursorGetFilesFlow(userId, folderPath)
 	except:
 		print
 		print "------- CURSOR NOT FOUND!!! GETTING FRESH FOLDER DATA -------"
 		print
-		# Get all files from specified Dropbox folder if no cursor exists
-		files = dbox.files_list_folder(folderPath, include_media_info=True)
-		cursor = files.cursor
-		updateFolderCursor(userId, folderPath, cursor)
+		files = newCursorGetFilesFlow(userId, folderPath)
+		# # Get all files from specified Dropbox folder if no cursor exists
+		# files = dbox.files_list_folder(folderPath, include_media_info=True)
+		# cursor = files.cursor
+		# updateFolderCursor(userId, folderPath, cursor)
 	photoData = []
 	# Iterate through files and check if each file is a photo.
 	# If file is a photo, create a metadata object for the
-	# photo and download the photo 
-	for fileToCheck in files.entries:
-		try:
-			if checkIfPhoto(fileToCheck.media_info):
-				photoData.append(processPhoto(fileToCheck))
-		except Exception as e:
-			print
-			print "------- ERROR GETTING FILE MEDIA INFO -------", e
-			print
-	# Download each photo to temporary storage on web server
-	for i in range(len(photoData)):
-		downloadFile(photoData[i][0], photoData[i][1]['photoName'])
+	# photo and download the photo
+	# First check if there are any returned entries - if not, then everything's up-to-date!
+	if len(files.entries) > 0:
+		for fileToCheck in files.entries:
+			try:
+				if checkIfPhoto(fileToCheck.media_info):
+					photoData.append(processPhoto(fileToCheck))
+			except Exception as e:
+				print
+				print "------- ERROR GETTING FILE MEDIA INFO -------", e
+				print
+		# Download each photo to temporary storage on web server
+		for i in range(len(photoData)):
+			downloadFile(photoData[i][0], photoData[i][1]['photoName'])
+	else:
+		print
+		print '------- NO NEW FILES! -------'
+		print
 
 	# TODO: SEND PHOTO META DATA TO PI BOX - SEND TO SIBLING FOLDER OF PHOTO DOWNLOADS - MATCH BY FILENAME
 

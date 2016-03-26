@@ -149,8 +149,9 @@ def submitRegistration():
 @app.route('/test-api')
 def testAPIButton():
 	# instagramAPI.getAllNewPosts()
-	#foursquareAPI.getUserCheckinHistory()
-	lastfmAPI.getUserHistoricalPlays()
+	# foursquareAPI.getUserCheckinHistory()
+	# lastfmAPI.getUserHistoricalPlays()
+	dropboxAPI.pollUserSelectedFolders()
 	return redirect('service_authorization')
 
 # A function to be called to poll all of user's authorized apps/services
@@ -297,6 +298,16 @@ def dropboxUserSelectedFolders():
 		# Poll selected folders and download photos
 		dropboxAPI.pollUserSelectedFolders()
 		return redirect('/connect-foursquare')
+
+# Only used for determining which folders to auto-check in the Dropbox folder selection screen
+@app.route('/get-dropbox-user-selected-folders')
+def getDropboxUserSelectedFolders():
+	userId = session['userId']
+	folderPaths = dropboxAPI.getUserSelectedFolders(userId)
+	print
+	print '------- FOLDER PATHS TO BE AUTO-CHECKED -------', folderPaths
+	print
+	return jsonify(folderPaths)
 
 @app.route('/connect-fitbit', methods=['GET', 'POST'])
 def fitbithandler():

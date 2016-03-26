@@ -75,6 +75,11 @@ def getMongoFolderContents():
 		print "------- User ---------------", user['userId']
 		print "------- lastCheckinTimestamp -------", user['lastCheckinTimestamp']
 
+# Reset user's lastCheckinTimestamp in Mongo - useful for testing or if user wants to redownload everything
+def resetMostRecentItemId():
+	userId = session['userId']
+	recentCheckinsDb.update({'userId': userId}, {'$set': {'lastCheckinTimestamp': 0}})	
+
 # Hits Mongo to find & return the timestamp of the user's most recent checkin
 def getLastCheckinTimestamp():
 	userId = session['userId']
