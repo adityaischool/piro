@@ -52,13 +52,31 @@ def codeFlow(code):
 		print
 		print "------- ERROR GETTING FOURSQUARE ACCESS TOKEN RESPONSE -------", e
 		print
+	# Update the UserDevice table in the db
+	updateUserDeviceTable(decodedResponse, userId)
+	# If the user is not yet onboarded (i.e., it's their first time throug this process), download their history
+	if not session['onboarded']:
+		getUserCheckinHistory()
+
+# Update the UserDevice table in the db
+def updateUserDeviceTable(decodedResponse, userId):
 	# Parse Foursquare access token response
-	token = decodedResponse['access_token']
-	# Write the user's Foursquare token to the web server db
-	try:
-		userDevice = UserDevice(userId, 'foursquare', None, None, token, None)
+	accessToken = decodedResponse['access_token']
+	# Check if user already has a record in UserDevice - update if so, create one if not
+	userIdQueryResult = UserDevice.query.filter_by(userid=userId, devicetype='foursquare').first()
+	if userIdQueryResult is not None:
+		# Update the user's existing record in the UserDevice table
+		print
+		print '------ THERE IS ALREADY A RECORD FOR THIS USER!!!! -------'
+		print
+		userIdQueryResult.accesstoken = accessToken
+	else:
+		# Create a new db record to be inserted into the UserDevice table
+		userDevice = UserDevice(userId, 'foursquare', None, None, accessToken, None)
 		# Add and commit newly created User db record
 		db.session.add(userDevice)
+	# Commit the results to the UserDevice table in the db
+	try:
 		db.session.commit()
 	except Exception as e:
 		print
@@ -293,3 +311,6 @@ def getAccessToken():
 			print
 			print "------- ERROR GETTING USER'S FOURSQUARE ACCESS TOKEN -------", e
 			print
+			return None
+	else:
+		return None

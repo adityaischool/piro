@@ -54,19 +54,39 @@ def codeFlow(code):
 		print
 		print "------- ERROR GETTING INSTAGRAM ACCESS TOKEN RESPONSE -------", e
 		print
+	# Update the UserDevice table in the db
+	updateUserDeviceTable(decodedResponse, userId)
+	# If the user is not yet onboarded (i.e., it's their first time throug this process), download their history
+	if not session['onboarded']:
+		getAllNewPosts()
+
+# Update the UserDevice table in the db
+def updateUserDeviceTable(decodedResponse, userId):
 	# Parse Instagram access token response
-	token = decodedResponse['access_token']
+	accessToken = decodedResponse['access_token']
 	instagramUserId = decodedResponse['user']['id']
 	instagramUsername = decodedResponse['user']['username']
-	# Write the user's Instagram username, id, & token to the web server db
-	try:
-		userDevice = UserDevice(userId, 'instagram', instagramUsername, instagramUserId, token, None)
+	# Check if user already has a record in UserDevice - update if so, create one if not
+	userIdQueryResult = UserDevice.query.filter_by(userid=userId, devicetype='instagram').first()
+	if userIdQueryResult is not None:
+		# Update the user's existing record in the UserDevice table
+		print
+		print '------ THERE IS ALREADY A RECORD FOR THIS USER!!!! -------'
+		print
+		userIdQueryResult.deviceuserid = instagramUsername
+		userIdQueryResult.deviceuserid = instagramUserId
+		userIdQueryResult.accesstoken = accessToken
+	else:
+		# Create a new db record to be inserted into the UserDevice table
+		userDevice = UserDevice(userId, 'instagram', instagramUsername, instagramUserId, accessToken, None)
 		# Add and commit newly created User db record
 		db.session.add(userDevice)
+	# Commit the results to the UserDevice table in the db
+	try:
 		db.session.commit()
 	except Exception as e:
 		print
-		print "------- ERROR WRITING INSTAGRAM USERID & TOKEN TO DB -------", e
+		print "------- ERROR WRITING INSTAGRAM USERNAME, USERID, & TOKEN TO DB -------", e
 		print
 
 # Check whether or not the user has authorized access to Instagram or not
@@ -100,6 +120,9 @@ def getAccessToken():
 			print
 			print "------- ERROR GETTING USER'S INSTAGRAM ACCESS TOKEN -------", e
 			print
+			return None
+	else:
+		return None
 
 # Generate and return an sha256 signature used for API calls
 def generateSignature(endpoint, params):

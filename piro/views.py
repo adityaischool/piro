@@ -13,7 +13,7 @@ from models import User, UserDevice
 from piro import hitFitbitApi
 from facebookLongTermTokenFetcher import fetchLongTermFacebookToken
 import md5, base64
-import lastfmAPI, dropboxAPI, instagramAPI, foursquareAPI
+import lastfmAPI, dropboxAPI, instagramAPI, fitbitAPI, foursquareAPI
 from pprint import pprint
 
 @app.route('/')
@@ -150,8 +150,9 @@ def submitRegistration():
 def testAPIButton():
 	# instagramAPI.getAllNewPosts()
 	# foursquareAPI.getUserCheckinHistory()
-	# lastfmAPI.getUserHistoricalPlays()
-	dropboxAPI.pollUserSelectedFolders()
+	lastfmAPI.getUserHistoricalPlays()
+	# dropboxAPI.pollUserSelectedFolders()
+	# fitbitAPI.pollRecentFitbitData()
 	return redirect('service_authorization')
 
 # A function to be called to poll all of user's authorized apps/services
@@ -228,6 +229,7 @@ def lastfmToken():
 	print "--------- TOKEN --------- ", token
 	lastfmAPI.getUserName(token)
 	# NEED TO TRIGGER & SHOW A CONFIRMATION OF SUCCESS THAT AUTH WAS SUCCCESSFUL
+	lastfmAPI.getUserHistoricalPlays()
 
 	# If user has already been onboarded, return them to the service authorization page
 	if session['onboarded']:
@@ -310,29 +312,20 @@ def getDropboxUserSelectedFolders():
 	return jsonify(folderPaths)
 
 @app.route('/connect-fitbit', methods=['GET', 'POST'])
-def fitbithandler():
-	userId = session['userId']
-	foauth2.fitbitoauth(userId)
-	# If user has already been onboarded, return them to the service authorization page
-	if session['onboarded']:
-		return redirect('/service_authorization')
-	# If user has not been fully onboarded, redirect them to the next service authorization option
-	# If this is the last service authorization option available on the list, redirect user to the dashboard
-	else:
-		return redirect('/connect-lastfm')
+def connectFitbit():
+	# userId = session['userId']
+	client_id = fitbitAPI.getAPIKey()
+	print
+	print '---------- FITBIT CLIENT ID ---------', client_id
+	redirect_uri = fitbitAPI.getAuthCallback()
+	print
+	print '---------- FITBIT CALLBACK REDIRECT URI --------', redirect_uri
+	return redirect('https://www.fitbit.com/oauth2/authorize?response_type=code&client_id='+client_id+'&redirect_uri='+redirect_uri+'&scope=activity%20heartrate%20location%20nutrition%20profile%20sleep')
 
-@app.route('/fitbit2', methods=['GET', 'POST'])
-def fitbithandler2():
-	#call fitbit oauth code here
-	#foauth2.fitbitoauth()
-	z = fitoauth.Fitbit()
-	auth_url = z.GetAuthorizationUri()
-	print "AAAAuth URL",auth_url
-	accesscode=auth_url['access_code']
-	token = z.GetAccessToken(access_code)
-	response = z.ApiCall(token, '/1/user/-/activities/log/steps/date/today/7d.json')
-	print "response",response
-	#foauth2.newauth()"""
+@app.route('/fitbit-token')
+def fitbitToken():
+	code = request.args.get('code')
+	fitbitAPI.codeFlow(code)
 
 	# If user has already been onboarded, return them to the service authorization page
 	if session['onboarded']:
@@ -340,7 +333,29 @@ def fitbithandler2():
 	# If user has not been fully onboarded, redirect them to the next service authorization option
 	# If this is the last service authorization option available on the list, redirect user to the dashboard
 	else:
+		return redirect('/dashboard')
 		return redirect('/connect-lastfm')
+
+# @app.route('/fitbit2', methods=['GET', 'POST'])
+# def fitbithandler2():
+# 	#call fitbit oauth code here
+# 	#foauth2.fitbitoauth()
+# 	z = fitoauth.Fitbit()
+# 	auth_url = z.GetAuthorizationUri()
+# 	print "AAAAuth URL",auth_url
+# 	accesscode=auth_url['access_code']
+# 	token = z.GetAccessToken(access_code)
+# 	response = z.ApiCall(token, '/1/user/-/activities/log/steps/date/today/7d.json')
+# 	print "response",response
+# 	#foauth2.newauth()"""
+
+# 	# If user has already been onboarded, return them to the service authorization page
+# 	if session['onboarded']:
+# 		return redirect('/service_authorization')
+# 	# If user has not been fully onboarded, redirect them to the next service authorization option
+# 	# If this is the last service authorization option available on the list, redirect user to the dashboard
+# 	else:
+# 		return redirect('/connect-lastfm')
 
 @app.route('/requestdata', methods=['GET', 'POST'])
 def upload():

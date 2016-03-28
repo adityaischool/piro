@@ -91,16 +91,31 @@ def codeFlow(code):
 		print
 		print "------- ERROR GETTING DROPBOX ACCESS TOKEN RESPONSE -------", e
 		print
+	# Update the UserDevice table in the db
+	updateUserDeviceTable(decodedResponse, userId)
+
+# Update the UserDevice table in the db
+def updateUserDeviceTable(decodedResponse, userId):
 	# Parse Dropbox access token response
-	token = decodedResponse['access_token']
+	accessToken = decodedResponse['access_token']
 	dropboxUserId = decodedResponse['uid']
-	# Write the user's Dropbox id & token to the web server db
-	try:
-		userDevice = UserDevice(userId, 'dropbox', None, dropboxUserId, token, None)
+	# Check if user already has a record in UserDevice - update if so, create one if not
+	userIdQueryResult = UserDevice.query.filter_by(userid=userId, devicetype='dropbox').first()
+	if userIdQueryResult is not None:
+		# Update the user's existing record in the UserDevice table
+		print
+		print '------ THERE IS ALREADY A RECORD FOR THIS USER!!!! -------'
+		print
+		userIdQueryResult.deviceuserid = dropboxUserId
+		userIdQueryResult.accesstoken = accessToken
+	else:
+		# Create a new db record to be inserted into the UserDevice table
+		userDevice = UserDevice(userId, 'dropbox', None, dropboxUserId, accessToken, None)
 		# Add and commit newly created User db record
 		db.session.add(userDevice)
+	# Commit the results to the UserDevice table in the db
+	try:
 		db.session.commit()
-		setDboxApiObj()
 	except Exception as e:
 		print
 		print "------- ERROR WRITING DROPBOX USERID & TOKEN TO DB -------", e
@@ -270,6 +285,7 @@ def updateFolderSync(userId, folder):
 
 # Download any new files from user's synced folders
 def pollUserSelectedFolders():
+	setDboxApiObj()
 	userId = session['userId']
 	# Get a user's selected folder paths to sync
 	folderPaths = getUserSelectedFolders(userId)
@@ -314,7 +330,6 @@ def newCursorGetFilesFlow(userId, folderPath):
 
 # Gets a list of all photo files in the given folder then downloads them
 def getFilesFromFolder(folderPath):
-	setDboxApiObj()
 	userId = session['userId']
 	cursor = ''
 	files = ''

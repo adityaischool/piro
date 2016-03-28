@@ -45,29 +45,45 @@ def getUserName(token):
 	try:
 		requestUrlRaw = 'http://ws.audioscrobbler.com/2.0/?method=auth.getsession&api_key='+API_KEY+'&token='+token+'&api_sig='+signature+'&format=json'
 		requestUrlEncoded = requestUrlRaw.decode('utf-8').encode('utf-8')
-
 		getAuthSession = requests.get(requestUrlEncoded)
 	except Exception as e:
 		print "------- ERROR AUTHORIZING USER WITH LAST.FM -------", e
 	# Parse Last.fm user authorization response	
 	try:
-		jsonResponse = getAuthSession.json()
+		decodedResponse = getAuthSession.json()
 		print
 		print "------- AUTH SESSION RESPONSE -------"
-		pprint(jsonResponse)
-		print
-		lastfmUsername = jsonResponse['session']['name']
-		print "------- LAST.FM USERNAME -------", lastfmUsername
+		pprint(decodedResponse)
 		print
 	except Exception as e:
 		print
-		print "------- ERROR PARSING LAST.FM USER AUTH RESPONSE -------", e
+		print "------- ERROR DECODING LAST.FM USER AUTH RESPONSE -------", e
 		print
-	# Now write the user's Last.fm username to the web server db
-	try:
+	# Update the UserDevice table in the db
+	updateUserDeviceTable(decodedResponse, userId)
+	# If the user is not yet onboarded (i.e., it's their first time throug this process), download their history
+	if not session['onboarded']:
+		getUserHistoricalPlays()
+
+# Update the UserDevice table in the db
+def updateUserDeviceTable(decodedResponse, userId):
+	# Parse Last.fm access token response
+	lastfmUsername = decodedResponse['session']['name']
+	# Check if user already has a record in UserDevice - update if so, create one if not
+	userIdQueryResult = UserDevice.query.filter_by(userid=userId, devicetype='lastfm').first()
+	if userIdQueryResult is not None:
+		# Update the user's existing record in the UserDevice table
+		print
+		print '------ THERE IS ALREADY A RECORD FOR THIS USER!!!! -------'
+		print
+		userIdQueryResult.deviceusername = lastfmUsername
+	else:
+		# Create a new db record to be inserted into the UserDevice table
 		userDevice = UserDevice(userId, 'lastfm', lastfmUsername, None, None, None)
 		# Add and commit newly created User db record
 		db.session.add(userDevice)
+	# Commit the results to the UserDevice table in the db
+	try:
 		db.session.commit()
 	except Exception as e:
 		print
@@ -89,8 +105,8 @@ def resetMostRecentPlaybackTimestamp():
 	userId = session['userId']
 	recentSongPlaysDb.update({'userId': userId}, {'$set': {'lastSongPlaybackTimestamp': 0}})	
 
-# Hits Mongo to find & return the timestamp of the user's most recent songg playback
-def getLastCheckinTimestamp():
+# Hits Mongo to find & return the timestamp of the user's most recent song playback
+def getLastPlaybackTimestamp():
 	userId = session['userId']
 	lastSongPlaybackTimestamp = 0
 	# Check if user has a Last.fm record in Mongo
@@ -162,7 +178,7 @@ def callAPI(page=None, fromTimestamp=0):
 def getUserHistoricalPlays():
 	# resetMostRecentPlaybackTimestamp()
 	historicalPlaysObject = {'data': []}
-	fromTimestamp = getLastCheckinTimestamp()
+	fromTimestamp = getLastPlaybackTimestamp()
 	mostRecentlyPlayedTimestamp = fromTimestamp
 	page = 1
 	# Go through each page of API results and process tracks until we process all new tracks
