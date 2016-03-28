@@ -103,7 +103,9 @@ def getMongoFolderContents():
 # Reset user's most recent playback timestamp record in Mongo - useful for testing or if user wants to redownload their data
 def resetMostRecentPlaybackTimestamp():
 	userId = session['userId']
-	recentSongPlaysDb.update({'userId': userId}, {'$set': {'lastSongPlaybackTimestamp': 0}})	
+	recentSongPlaysDb.update({'userId': userId}, {'$set': {'lastSongPlaybackTimestamp': 0}})
+	# Verify Mongo update
+	getMongoFolderContents()	
 
 # Hits Mongo to find & return the timestamp of the user's most recent song playback
 def getLastPlaybackTimestamp():
@@ -184,8 +186,12 @@ def getUserHistoricalPlays():
 	# Go through each page of API results and process tracks until we process all new tracks
 	while True:
 		try:
+			print
+			print '------- CALLING PAGE', page, 'OF LAST.FM API WITH TIMESTAMP', fromTimestamp, '-------'
 			decodedResponse = callAPI(page, fromTimestamp)
 			responseTracks = decodedResponse['recenttracks']['track']
+			print '------- PAGE', page, 'OF RESULTS HAS', len(responseTracks), 'TRACKS TO PROCESS -------'
+			print
 			# Check to make sure response has playback songs - break loop if no more songs to process
 			if len(responseTracks) > 0:
 				# Extract track info
@@ -194,12 +200,13 @@ def getUserHistoricalPlays():
 					if processedTrack['playbackTimestamp'] > mostRecentlyPlayedTimestamp:
 						mostRecentlyPlayedTimestamp = processedTrack['playbackTimestamp']
 					historicalPlaysObject['data'].append(processedTrack)
-					page += 1
 			else:
 				print
 				print '------- NO MORE RECENT SONG PLAYBACKS! -------'
 				print
 				break
+			# Move on to next page of results
+			page += 1
 		except Exception as e:
 			print
 			print "------ ERROR GETTING LAST.FM SONG PLAYBACK DATA -------", e
