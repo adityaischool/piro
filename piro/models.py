@@ -20,10 +20,10 @@ class User(db.Model):
         self.userpimac = userpimac
     def __repr__(self):
         return "<User %r>" % self.name+\
-        "---userid="+self.userid+\
-        "---user-email="+self.email+\
-        "---onboarded="+self.onboarded+\
-        "---userpimac="+self.userpimac
+        "--- userid = "+self.userid+\
+        "--- user-email = "+self.email+\
+        "--- onboarded = "+self.onboarded+\
+        "--- userpimac = "+self.userpimac
 
 class UserDevice(db.Model):
     userid = db.Column(db.String(120), primary_key=True)#ss
@@ -42,10 +42,22 @@ class UserDevice(db.Model):
         self.accesstoken = accesstoken
         self.refreshtoken = refreshtoken
     def __repr__(self):
-        return "<User %r>" % self.userid+\
-        "---device-type="+self.devicetype+\
-        "---device-username="+self.deviceusername+\
-        "---device-userid="+self.deviceuserid+\
-        "---access-token="+self.accesstoken+\
-        "---refresh-token="+self.refreshtoken
+        return "<UserDevice %r>" % self.userid+\
+        "--- device-type = "+self.devicetype+\
+        "--- device-username = "+self.deviceusername+\
+        "--- device-userid = "+self.deviceuserid+\
+        "--- access-token = "+self.accesstoken+\
+        "--- refresh-token = "+self.refreshtoken
 
+class APICredentials(db.Model):
+    apiName = db.Column(db.String(120), primary_key=True)
+    apiKeyOrClientId = db.Column(db.String(120))
+    apiSecret = db.Column(db.String(120))
+    def __init__(self, apiName, apiKeyOrClientId, apiSecret):
+        self.apiName = apiName
+        self.apiKeyOrClientId = apiKeyOrClientId
+        self.apiSecret = apiSecret
+    def __repr__(self):
+        return "<API Credentials for %r>" % self.apiName+\
+        "--- apiKeyOrClientId = "+self.apiKeyOrClientId+\
+        "--- apiSecret = "+self.apiSecret

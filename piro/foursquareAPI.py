@@ -1,18 +1,20 @@
 ## PACKAGE FOR AUTHORIZING & HITTING THE FOURSQUARE/SWARM API
 
-import md5, base64, requests, pymongo
+import os, md5, base64, requests, pymongo
 from flask import request, session
 from piro import models, db
 from models import UserDevice,User
 from pprint import pprint
+from apiCredentials import getAPICredentials
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
 mongoDb = client.foursquare
 recentCheckinsDb = mongoDb.foursquareRecentCheckins
 
-API_KEY = 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR'
-SECRET = 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN'
+# Instantiate Foursquare API credentials
+API_KEY = getAPICredentials('foursquare')[0]
+SECRET = getAPICredentials('foursquare')[1]
 AUTH_CALLBACK = 'http://localhost:5000/foursquare-token'
 # This is a special value for Foursquare's API that keeps your API calls tied to a specific version of their API
 # Helps to avoid unexpected changes if they change their API - kinda nice, really!
@@ -148,6 +150,7 @@ def getUserCheckinHistory():
 		# Verify Mongo update
 		getMongoFolderContents()
 
+		downloadPhotos(checkinHistoryData)
 		# TODO: ADD CODE FOR DOWNLOADING PHOTOS LOCALLY & PUSHING TO PI BOX - MAYBE GET PHOTOS USING SEPARATE ENDPOINT?
 		# TODO: PUSH CHECKIN METADATA TO PI BOX
 		return checkinHistoryData
@@ -157,12 +160,54 @@ def getUserCheckinHistory():
 		print
 		return False
 
+# Download copies of checkin photos to the staging area, then push to pi box
+def downloadPhotos(checkinHistoryData):
+	maxDimension = ''
+	constructedUrl = ''
+	for checkin in checkinHistoryData['data']:
+		if len(checkin['photos']) > 0:
+			for photo in checkin['photos']:
+				if max([int(photo['width']), int(photo['height'])]) >= 500:
+					maxDimension = '500'
+				elif max([int(photo['width']), int(photo['height'])]) < 500:
+					maxDimension = '300'
+				constructedUrl = photo['urlPrefix'] + 'cap' + maxDimension + photo['urlSuffix']
+				downloadFile(constructedUrl)
+
+
+# Downloads the file at the given URL to a specified folder
+def downloadFile(url):
+	userId = session['userId']
+	downloadDirectory = 'foursquareStaging/'+userId+'/'
+	# Check if download directory exists; create if it does not exist
+	if not os.path.exists(downloadDirectory):
+		os.makedirs(downloadDirectory)
+	fileName = url.split('/')[-1]
+	# Concatenate downloadDirectory + fileName
+	pathPlusFileName = downloadDirectory + fileName
+	# Download file at from specified Foursquare URL to specified local path
+	try:
+		print
+		print '------- DOWNLOADING FILE FROM URL', url, '-------'
+		print
+		fileData = requests.get(url).content
+	except Exception as e:
+		print
+		print '------- ERROR DOWNLOADING FILE FROM FOURSQUARE -------', e
+	# Write the downlaoded file data to local disk at specified path
+	f = open(pathPlusFileName, 'wb')
+	f.write(fileData)
+	f.close()
+	
+	# TODO: ADD CODE TO UPLOAD PHOTO FILES & METADATA TO PI BOX - SHOULD BE IN SIBLING FOLDER OF PHOTO METADATA - MATCH BY FILENAME
+	# TODO: ONCE FILES UPLOADED TO PI BOX, DELETE FROM WEB SERVER
+
 # Gets & processes a page of results from the user's checkin history
 # Optionally takes a results limit, offset (for pagination), and an afterTimestamp,
 # which filters out any checkins before the timestamp - good for ignoring checkins we've already processed
 def getRecentUserCheckinPage(limit=250, offset=0, afterTimestamp=0):
 	userId = session['userId']
-	# Fetch user's access token from web server db
+	# Fetch user's access token from UserDevice table
 	accessToken = getAccessToken()
 	baseURL = 'https://api.foursquare.com/v2'
 	endpoint = '/users/self/checkins'
@@ -250,7 +295,22 @@ def processCheckins(decodedResponse):
 			print '------- ERROR EXTRACTING CHECKIN EVENT -------', e
 		try:
 			for photo in checkin['photos']['items']:
-				photos.append(photo)
+				tempPhoto = {}
+				photoTimestamp = photo['createdAt']
+				photoHeight = photo['height']
+				photoWidth = photo['width']
+				photoId = photo['id']
+				photoUrlPrefix = photo['prefix']
+				photoUrlSuffix = photo['suffix']
+
+				tempPhoto['timestamp'] = photoTimestamp
+				tempPhoto['height'] = photoHeight
+				tempPhoto['width'] = photoWidth
+				tempPhoto['id'] = photoId
+				tempPhoto['urlPrefix'] = photoUrlPrefix
+				tempPhoto['urlSuffix'] = photoUrlSuffix
+
+				photos.append(tempPhoto)
 		except Exception as e:
 			print
 			print '------- ERROR EXTRACTING CHECKIN PHOTO(S) -------', e
@@ -299,7 +359,7 @@ def checkIfFoursquareAuthorized():
 		print
 		return [False, None]
 
-# Parse the web server db query response and return the user's access token
+# Parse the UserDevice table query response and return the user's access token
 def getAccessToken():
 	foursquareCheckResponse = checkIfFoursquareAuthorized()
 	if foursquareCheckResponse[0]:

@@ -12,7 +12,7 @@ def hitFitbitApis(userId, date=None):
 	accesstoken = ''
 	refreshtoken = ''
 
-	# Get User's Fitbit access & refresh tokens from our web server db
+	# Get User's Fitbit access & refresh tokens from the UserDevice table
 	try:
 		first=UserDevice.query.filter_by(userid=userId).first()
 		print "user id is ----",userId

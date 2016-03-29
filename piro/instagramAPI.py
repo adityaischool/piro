@@ -1,6 +1,5 @@
 ## PACKAGE FOR AUTHORIZING & HITTING THE INSTAGRAM API
 
-
 import os, md5, base64, requests, pymongo
 import hmac
 from hashlib import sha256
@@ -8,16 +7,16 @@ from flask import request, session
 from piro import models, db
 from models import UserDevice,User
 from pprint import pprint
-from collections import Counter
+from apiCredentials import getAPICredentials
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
 mongoDb = client.instagram
 recentMediaIdsDb = mongoDb.instagramRecentMediaIds
 
-# Instagram app credentials
-API_KEY = '710b8ed34bce4cc7894e7991459a4ebb'
-SECRET = '23276b9f88c94e30b880a072041aecb3'
+# Instantiate Instagram API credentials
+API_KEY = getAPICredentials('instagram')[0]
+SECRET = getAPICredentials('instagram')[1]
 AUTH_CALLBACK = 'http://localhost:5000/instagram-token'
 BASE_URL = ''
 
@@ -108,7 +107,7 @@ def checkIfInstagramAuthorized():
 		print
 		return [False, None]
 
-# Parse the web server db query response and return the user's access token
+# Parse the UserDevice table query response and return the user's access token
 def getAccessToken():
 	instagramCheckResponse = checkIfInstagramAuthorized()
 	if instagramCheckResponse[0]:
@@ -256,7 +255,7 @@ def downloadFile(url):
 # Gets a user's recent Instagram posts earlier than the maxId, if given
 def getUserRecentMedia(maxId):
 	userId = session['userId']
-	# Fetch user's access token from web server db
+	# Fetch user's access token from the UserDevice table
 	accessToken = getAccessToken()
 	baseURL = 'https://api.instagram.com/v1'
 	endpoint = '/users/self/media/recent'

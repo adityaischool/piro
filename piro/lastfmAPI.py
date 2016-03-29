@@ -5,14 +5,16 @@ from flask import request, session
 from piro import models, db
 from models import UserDevice,User
 from pprint import pprint
+from apiCredentials import getAPICredentials
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
 mongoDb = client.lastfm
 recentSongPlaysDb = mongoDb.lastfmRecentSongPlaysDb
 
-API_KEY = '070094824815e5b8dc5fcfbc5a2f723f'
-SECRET = '3afa4374733f63f58bd6e5b5962cbbb6'
+# Instantiate Last.fm API credentials
+API_KEY = getAPICredentials('lastfm')[0]
+SECRET = getAPICredentials('lastfm')[1]
 # Callback on Last.fm server = 'http://localhost:5000/connect-lastfm'
 AUTH_CALLBACK = 'http://localhost:5000/lastfm-token'
 BASE_URL = 'http://ws.audioscrobbler.com/2.0/'

@@ -6,15 +6,16 @@ from flask import request, session
 from pprint import pprint
 from piro import models, db
 from models import User, UserDevice
+from apiCredentials import getAPICredentials
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
 mongoDb = client.dropbox
 dboxUserFolders = mongoDb.dboxUserFolders
 
-# Dropbox app credentials
-API_KEY = 'f2ysiyl8imtvz0g'
-SECRET = '6pk00rjwh5s24cr'
+# Instantiate Dropbox API credentials
+API_KEY = getAPICredentials('dropbox')[0]
+SECRET = getAPICredentials('dropbox')[1]
 AUTH_CALLBACK = 'http://localhost:5000/dropbox-token'
 
 # Instantiate dropbox variable, to be set to Dropbox API object later
@@ -39,7 +40,7 @@ def checkIfDropboxAuthorized():
 		print
 		return [False, None]
 
-# Get Dropbox token from web server db and instantiate Dropbox API object
+# Get Dropbox token from UserDevice table and instantiate Dropbox API object
 def setDboxApiObj():
 	global dbox
 	dropboxCheckResponse = checkIfDropboxAuthorized()

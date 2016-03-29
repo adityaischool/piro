@@ -716,7 +716,7 @@ class Fitbit(object):
         if not detail_level in ['1sec', '1min', '15min']:
             raise ValueError("Period must be either '1sec', '1min', or '15min'")
 
-        url = "{0}/{1}/user/-/{resource}/date/{base_date}/1d/{detail_level}".format(
+        url = "{0}/{1}/user/-/activities/{resource}/date/{base_date}/1d/{detail_level}".format(
             *self._get_common_args(),
             resource=resource,
             base_date=self._get_date_string(base_date),

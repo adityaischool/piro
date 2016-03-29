@@ -1,18 +1,20 @@
 ## PACKAGE FOR AUTHORIZING & HITTING THE FITBIT API
 
-import base64, requests, pymongo, fitbitLibrary
+import base64, requests, time, datetime, pymongo, fitbitLibrary
 from flask import request, session
 from piro import models, db
 from models import UserDevice,User
 from pprint import pprint
+from apiCredentials import getAPICredentials
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
 mongoDb = client.fitbit
 lastFitbitSync = mongoDb.lastFitbitSync
 
-API_KEY = '227NKT'
-SECRET = 'd7a4ececd5e68a5f3f36d64e304fbe25'
+# Instantiate Fitbit API credentials
+API_KEY = getAPICredentials('fitbit')[0]
+SECRET = getAPICredentials('fitbit')[1]
 AUTH_CALLBACK = 'http://localhost:5000/fitbit-token'
 
 fitbit = ''
@@ -86,7 +88,7 @@ def updateUserDeviceTable(decodedResponse, userId):
 		print "------- ERROR WRITING FITBIT USERID & TOKENS TO DB -------", e
 		print
 
-# Check whether or not the user has authorized access to Instagram or not
+# Check whether or not the user has authorized access to Fitbit or not
 def checkIfFitbitAuthorized():
 	userId = session['userId']
 	# Query UserDevice table current user's Fitbit credentials
@@ -105,7 +107,7 @@ def checkIfFitbitAuthorized():
 		print
 		return [False, None]
 
-# Parse the web server db query response and return the user's access token
+# Parse the UserDevice table query response and return the user's access token
 def getTokensFromDb():
 	fitbitCheckResponse = checkIfFitbitAuthorized()
 	if fitbitCheckResponse[0]:
@@ -126,7 +128,7 @@ def getTokensFromDb():
 	else:
 		return [None, None]
 
-# Get Fitbit access & refresh tokens from web server db and instantiate Fitbit API object
+# Get Fitbit access & refresh tokens from UserDevice table and instantiate Fitbit API object
 def setFitbitApiObj():
 	global fitbit
 	tokens = getTokensFromDb()
@@ -140,54 +142,115 @@ def setFitbitApiObj():
 		print "------- ERROR INSTANTIATING FITBIT API OBJECT -------", e
 		print
 
+# Get a user's recent Fitbit data
 def pollRecentFitbitData():
+	# Instantiate the Fitbit API object
 	setFitbitApiObj()
-	# Hit 'Activities' endpoint of Fitbit API
-	fitbitActivitiesData = fitbit.activities('today')
-	print "-----------\n-----\n---Activities Data-----\n\n\n"
-	pprint(fitbitActivitiesData)
-	getIntradayHeartData()
+	lastSyncDate = getLastFitbitSyncDate()
+	if lastSyncDate == '0':
+		getUserMembershipDate()
+		lastSyncDate = getLastFitbitSyncDate()
+	# Iterate through each day since lastSyncDate & hit Fitbit API until lastSyncDate == yesterday
+	while True:
+		# Check if lastSyncDate is yesterday - if so, update Mongo with current lastSyncDate & break loop
+		if checkIfLastSyncDateIsYesterday(lastSyncDate):
+			break
+		print
+		print "------- SLEEPING 48 SECONDS PER FITBIT'S RATE LIMITS -------"
+		print
+		# time.sleep(48)
+		# Otherwise, add 1 day to lastSyncDate & get data from Fitbit API
+		lastSyncDate = addOneDayToLastSyncDate(lastSyncDate)
+		# Hit Fitbit API endpoints with lastSyncDate
+		getIntradayStepsData(date=lastSyncDate)
+		getIntradayHeartData(date=lastSyncDate)
+	updateLastFitbitSyncDate(lastSyncDate)
 
+def addOneDayToLastSyncDate(lastSyncDate):
+	formattedLastSyncDate = datetime.datetime.strptime(lastSyncDate, '%Y-%m-%d').date()
+	updatedLastSyncDate = formattedLastSyncDate + datetime.timedelta(days=1)
+	formattedLastSyncDate = datetime.datetime.strftime(updatedLastSyncDate, '%Y-%m-%d')
+	return formattedLastSyncDate
 
-def getIntradayHeartData(date='today'):
+def checkIfLastSyncDateIsYesterday(lastSyncDate):
+	# Turn lastSyncDate into datetime date object
+	formattedLastSyncDate = datetime.datetime.strptime(lastSyncDate, '%Y-%m-%d').date()
+	# Instantiate 'yesterday' datetime date object
+	yesterday = datetime.date.today() - datetime.timedelta(days=1)
+	if formattedLastSyncDate == yesterday:
+		return True
+	else:
+		return False
+
+# Hit Fitbit API for a user's intraday activity data
+# Date format is YYYY-MM-DD, 'today', or 'yesterday'
+def getIntradayStepsData(date='yesterday'):
+	lastFitbitSyncDate = getLastFitbitSyncDate()
+	responseData = fitbit.intraday_time_series(resource='steps', base_date=date, detail_level='1min')
+	print
+	print '------- INTRADAY STEPS DATA FROM', date, '-------'
+	pprint(responseData)
+	print
+
+# Hit Fitbit API for a user's intraday heart rate data
+# Date format is YYYY-MM-DD, 'today', or 'yesterday'
+def getIntradayHeartData(date='yesterday'):
+	lastFitbitSyncDate = getLastFitbitSyncDate()
 	responseData = fitbit.intraday_time_series_heart(base_date=date, detail_level='1min')
 	print
 	print '------- INTRADAY HEART RATE DATA FROM', date, '-------'
 	pprint(responseData)
 	print
 
+# Get a user's Fitbit membership date
+# Set the day before this date as the lastFitbitSyncDate when polling user's historical data
+def getUserMembershipDate():
+	userProfile = fitbit.user_profile_get()
+	userMembershipDate = userProfile['user']['memberSince']
+	formattedMembershipDate = datetime.datetime.strptime(userMembershipDate, '%Y-%m-%d').date()
+	dayBeforeMembership = formattedMembershipDate - datetime.timedelta(days=1)
+	formattedDayBeforeMemberShip = datetime.datetime.strftime(dayBeforeMembership, '%Y-%m-%d')
+	# Now update the lastFitbitSyncDate to 1 day before the user's membership date
+	updateLastFitbitSyncDate(formattedDayBeforeMemberShip)
+
+def updateLastFitbitSyncDate(date):
+	userId = session['userId']
+	# Make sure there is a lastFitbitSyncDate to update
+	getLastFitbitSyncDate()
+	# Update the lastFitbitSyncDate to the given date
+	lastFitbitSync.update({'userId': userId}, {'$set': {'lastFitbitSyncDate': date}})
+	# Verify changes in Mongo
+	getMongoFolderContents()
+
 # Display Mongo contents
 def getMongoFolderContents():
 	userId = session['userId']
-	print
-	print "------- USER'S LAST FITBIT SYNC TIMESTAMP -------"
 	for user in lastFitbitSync.find({}):
 		print
-		print "------- User ---------------", user['userId']
-		print "------- lastFitbitSyncTimestamp -------", user['lastFitbitSyncTimestamp']
+		print "------- USER", user['userId'], "LAST FITBIT SYNC DATE", user['lastFitbitSyncDate'], "-------"
 
-# Reset user's lastFitbitSyncTimestamp in Mongo - useful for testing or if user wants to redownload everything
-def resetLastFitbitSyncTimestamp():
+# Reset user's lastFitbitSyncDate in Mongo - useful for testing or if user wants to redownload everything
+def resetLastFitbitSyncDate():
 	userId = session['userId']
-	lastFitbitSync.update({'userId': userId}, {'$set': {'lastFitbitSyncTimestamp': 0}})	
+	lastFitbitSync.update({'userId': userId}, {'$set': {'lastFitbitSyncDate': '0'}})	
 
-# Hits Mongo to find & return the timestamp of the user's last sync
-def getLastFitbitSyncTimestamp():
+# Hits Mongo to find & return the date of the user's last sync
+def getLastFitbitSyncDate():
 	userId = session['userId']
-	lastFitbitSyncTimestamp = 0
+	lastFitbitSyncDate = '0'
 	# Check if user has a Foursquare record in Mongo
 	userIdQueryResults = lastFitbitSync.find({'userId': userId})
-	# If user doesn't yet have a record, create one for them with a lastCheckinTimestamp value of 0
+	# If user doesn't yet have a record, create one for them with a lastFitbitSyncDate value of 0
 	if userIdQueryResults.count() == 0:
-		recentCheckinsDb.insert({
+		lastFitbitSync.insert({
 			'userId': userId,
-			'lastFitbitSyncTimestamp': 0
+			'lastFitbitSyncDate': '0'
 			})
-	# If user does have a record, get the lastFitbitSyncTimestamp value - this should represent the newest post we have stored on the pi box for the user
+	# If user does have a record, get the lastFitbitSyncDate value - this should represent the newest post we have stored on the pi box for the user
 	else:
 		for user in userIdQueryResults:
-			lastFitbitSyncTimestamp = user['lastFitbitSyncTimestamp']
+			lastFitbitSyncDate = user['lastFitbitSyncDate']
 			print
-			print '------- MOST RECENT FITBIT SYNC TIMESTAMP FOR USER', userId, '-------', lastFitbitSyncTimestamp
+			print '------- MOST RECENT FITBIT SYNC DATE FOR USER', userId, '-------', lastFitbitSyncDate
 			print
-	return lastFitbitSyncTimestamp
+	return lastFitbitSyncDate

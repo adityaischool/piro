@@ -7,7 +7,6 @@ $("#submit-dropbox-folders").on('click', function submitCheckedBoxes() {
 });
 
 // Handler for when user confirms selected folders
-// Sends selected folder paths back to web server to be stored in web server db
 function processCheckboxes(checkboxes) {
 	var folders = {'data': []};
 	checkboxes.each(function() {

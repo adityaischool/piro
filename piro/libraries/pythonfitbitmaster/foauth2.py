@@ -12,7 +12,7 @@ def fitbitoauth(userId):
 	# Extract access & refresh tokens from response
 	access_token = server.oauth.token['access_token']
 	refresh_token = server.oauth.token['refresh_token']
-	# Write tokens to web server db
+	# Write tokens to the UserDevice table
 	try:
 		user_device=UserDevice(userId, "Fitbit", None, None, access_token, refresh_token)
 		db.session.add(user_device)

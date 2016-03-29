@@ -15,6 +15,7 @@ from facebookLongTermTokenFetcher import fetchLongTermFacebookToken
 import md5, base64
 import lastfmAPI, dropboxAPI, instagramAPI, fitbitAPI, foursquareAPI
 from pprint import pprint
+from apiCredentials import setAPICredentials
 
 @app.route('/')
 @app.route('/index')
@@ -47,7 +48,7 @@ def login():
 	errors = {}
 	if request.method=='POST':
 		username = request.form['username']
-		# First check if username in web server db
+		# First check if username in the User table
 		# TODO: ADD LOGIC FOR PASSWORDS
 		usernameQueryResults = User.query.filter_by(name=username).first()
 		if (type(usernameQueryResults) != type(None)):
@@ -104,12 +105,12 @@ def submitRegistration():
 		userId = ''
 		user = ''
 		onboarded = False
-		# First check if username or email in web server db
+		# First check if username or email in the User table
 		# TODO: ADD LOGIC FOR PASSWORDS LATER
 		usernameQueryResults = User.query.filter_by(name=username).first()
 		emailQueryResults = User.query.filter_by(email=email).first()
-		# Check if username and email are in web server db yet
-		# If neither are in web server db, proceed with registration
+		# Check if username and email are in the User table yet
+		# If neither are in the User table, proceed with registration
 		if (type(usernameQueryResults) == type(None)) and (type(emailQueryResults) == type(None)):
 			print
 			print '------- USERNAME AND EMAIL DO NOT YET EXIST IN DB ------'
@@ -150,14 +151,22 @@ def submitRegistration():
 def testAPIButton():
 	# instagramAPI.getAllNewPosts()
 
+	# foursquareAPI.resetMostRecentItemId()
 	# foursquareAPI.getUserCheckinHistory()
 
-	lastfmAPI.resetMostRecentPlaybackTimestamp()
-	lastfmAPI.getUserHistoricalPlays()
+	# lastfmAPI.resetMostRecentPlaybackTimestamp()
+	# lastfmAPI.getUserHistoricalPlays()
 
 	# dropboxAPI.pollUserSelectedFolders()
 
+	# fitbitAPI.resetLastFitbitSyncDate()
 	# fitbitAPI.pollRecentFitbitData()
+
+	# setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
+	# setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
+	# setAPICredentials('instagram', '710b8ed34bce4cc7894e7991459a4ebb', '23276b9f88c94e30b880a072041aecb3')
+	# setAPICredentials('lastfm', '070094824815e5b8dc5fcfbc5a2f723f', '3afa4374733f63f58bd6e5b5962cbbb6')
+	# setAPICredentials('dropbox', 'f2ysiyl8imtvz0g', '6pk00rjwh5s24cr')
 	return redirect('service_authorization')
 
 # A function to be called to poll all of user's authorized apps/services
@@ -294,7 +303,7 @@ def dropboxPhotoFolderSelection():
 def dropboxUserSelectedFolders():
 	# Get folders from GET request
 	folders = request.args.get('paths')
-	# Save user's Dropbox folder selections to web server DB
+	# Save user's Dropbox folder selections to Mongo
 	dropboxAPI.saveUserFolderSelections(folders)
 	# If user has already been onboarded, return them to the service authorization page
 	if session['onboarded']:
