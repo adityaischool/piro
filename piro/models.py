@@ -27,7 +27,7 @@ class User(db.Model):
 
 class UserDevice(db.Model):
     userid = db.Column(db.String(120), primary_key=True)#ss
-    devicetype = db.Column(db.String(120), primary_key=True) #device example = Fitbit
+    devicetype = db.Column(db.String(120), primary_key=True)
     deviceusername = db.Column(db.String(120))
     deviceuserid = db.Column(db.String(120))
     accesstoken = db.Column(db.String(120))#ss1 can also be app to fitbitARI

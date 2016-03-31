@@ -127,6 +127,7 @@ input[type=range]::-webkit-slider-runnable-track {
 	font-size: 1rem;
 	font-weight: bold;
 	height: 3rem;
+	line-height: 3rem;
 	padding: 4px;
 	width: 6rem;
 }
@@ -175,6 +176,7 @@ input[type=range]::-webkit-slider-runnable-track {
 	border-bottom-color: #bdc3c7;
 	color: #222222;
 	height: 2.5rem;
+	line-height: 2.5rem;
 	width: 5rem;
 }
 
@@ -189,7 +191,8 @@ input[type=range]::-webkit-slider-runnable-track {
 #content {
 	margin-top: 2rem;
 	text-align: center;
-	width: 100%;	
+	width: 100%;
+	min-height: 75vh;
 }
 
 .main-container {

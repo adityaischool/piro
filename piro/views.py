@@ -1,4 +1,4 @@
-from flask import render_template,request,session,redirect,jsonify,Response, escape
+from flask import render_template, request, session, redirect, jsonify, Response, escape
 from flask import url_for
 from piro import app, models, db
 import urllib2,fitoauth
@@ -13,7 +13,7 @@ from models import User, UserDevice
 from piro import hitFitbitApi
 from facebookLongTermTokenFetcher import fetchLongTermFacebookToken
 import md5, base64
-import lastfmAPI, dropboxAPI, instagramAPI, fitbitAPI, foursquareAPI
+import lastfmAPI, dropboxAPI, instagramAPI, fitbitAPI, foursquareAPI, forecastioAPI
 from pprint import pprint
 from apiCredentials import setAPICredentials
 
@@ -167,6 +167,9 @@ def testAPIButton():
 	# setAPICredentials('instagram', '710b8ed34bce4cc7894e7991459a4ebb', '23276b9f88c94e30b880a072041aecb3')
 	# setAPICredentials('lastfm', '070094824815e5b8dc5fcfbc5a2f723f', '3afa4374733f63f58bd6e5b5962cbbb6')
 	# setAPICredentials('dropbox', 'f2ysiyl8imtvz0g', '6pk00rjwh5s24cr')
+	# setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
+
+	forecastioAPI.getWeatherAtTime('37.866795', '-122.262635', '2015-06-20T12:00:00')
 	return redirect('service_authorization')
 
 # A function to be called to poll all of user's authorized apps/services

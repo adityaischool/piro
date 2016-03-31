@@ -6,8 +6,20 @@ from models import APICredentials
 def getAPICredentials(apiName):
 	apiNameQueryResult = APICredentials.query.filter_by(apiName=apiName).first()
 	apiNameQueryResultDict = apiNameQueryResult.__dict__
-	apiKeyOrClientId = apiNameQueryResultDict['apiKeyOrClientId']
-	apiSecret = apiNameQueryResultDict['apiSecret']
+	try:
+		apiKeyOrClientId = apiNameQueryResultDict['apiKeyOrClientId']
+	except Exception as e:
+		print
+		print '------- ERROR GETTING apiKeyOrClientId -------', e
+		print
+		apiKeyOrClientId = ''
+	try:
+		apiSecret = apiNameQueryResultDict['apiSecret']
+	except:
+		print
+		print '------- ERROR GETTING apiSecret -------', e
+		print
+		apiSecret = ''
 
 	return [apiKeyOrClientId, apiSecret]
 
