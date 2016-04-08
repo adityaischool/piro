@@ -8,11 +8,16 @@ from piro import models, db
 from models import UserDevice,User
 from pprint import pprint
 from apiCredentials import getAPICredentials
+from dataPointBuilder import createDataPoint
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
-mongoDb = client.instagram
-recentMediaIdsDb = mongoDb.instagramRecentMediaIds
+# Instantiate Mongo data point db
+dataPointDb = client.dataPointDb
+dataPoints = dataPointDb.dataPoints
+# Instantiate Instagram Dropbox db
+instagramDb = client.instagram
+recentMediaIdsDb = instagramDb.instagramRecentMediaIds
 
 # Instantiate Instagram API credentials
 API_KEY = getAPICredentials('instagram')[0]
@@ -121,6 +126,8 @@ def getAccessToken():
 			print
 			return None
 	else:
+		print
+		print '------- NO INSTAGRAM ACCESS TOKEN IN DB -------'
 		return None
 
 # Generate and return an sha256 signature used for API calls
@@ -133,7 +140,7 @@ def generateSignature(endpoint, params):
 	for key in sortedKeys:
 		sig += '|%s=%s' % (key, params[key])
 	# Create & return sha256 hash of signature
-	return hmac.new(secret, sig, sha256).hexdigest()
+	return hmac.new(key=bytearray(secret, 'utf-8'), msg=bytearray(sig, 'utf-8'), digestmod=sha256).hexdigest()
 
 # Display Mongo contents
 def getMongoFolderContents():
@@ -152,11 +159,6 @@ def resetMostRecentItemId():
 
 # Get all of a user's posts that have not already been retrieved in the past
 def getAllNewPosts():
-
-	# DELETE THIS ONCE TESTING IS COMPLETE!!
-	# resetMostRecentItemId()
-	###########################################
-
 	userId = session['userId']
 	mostRecentItemId = 0
 	maxId = 0
@@ -207,22 +209,39 @@ def getAllNewPosts():
 		# Also append each post image url to the imageUrls list for downloading later
 		for post in postDataObj['posts']:
 			# Check if mostRecentItemId is equal to the post's itemId - if it is equal, stop getting Instagram posts by breaking for & while loops
-			if post['itemId'] == mostRecentItemId:
+			if post['sourceData']['itemId'] == mostRecentItemId:
 				keepProcessing = False
 				print
 				print '------- NO MORE/NEW INSTAGRAM POSTS! -------'
 				print
 				break	
 			allPostData['data'].append(post)
-			imageUrls.append(post['url'])
+			imageUrls.append(post['sourceData']['url'])
 	# Set the mostRecentItemId in Mongo to highestMaxId - this is so we know where to start next time
 	recentMediaIdsDb.update({'userId': userId}, {'$set': {'mostRecentItemId': highestMaxId}})
 	# Check Mongo user object update
 	getMongoFolderContents()
 	# Download each from the Instagram URL
 	for item in allPostData['data']:
-		url = item['url']
+		url = item['sourceData']['url']
 		downloadFile(url)
+
+	# Temporarily store dataPoints in Mongo
+	oldCount = dataPoints.count()
+	try:
+		print '------- SKIPPING WRITING TO MONGO FOR NOW - MAKE SURE EVERYTHING LOOKS GOOD FIRST -------'
+		dataPoints.insert(allPostData['data'])
+	except Exception as e:
+		print
+		print '------- ERROR WRITING DATA POINTS TO MONGO -------', e
+	# Verify that everything went to Mongo successfully
+	print "------- A LIST OF THE USER'S FOLDERS, SYNC SETTINGS, & CURSORS -------"
+	newCount = dataPoints.count()
+	print
+	print "------- NUMBER OF DATA POINTS ATTEMPTED TO ADD TO DATAPOINTS DB:", len(allPostData['data'])
+	print "------- SUCCESSFULLY ADDED", newCount - oldCount, 'NEW DATA POINTS TO DATAPOINTS DB -------'
+	
+	# TODO: SEND PHOTO META DATA TO STORJ - WILL MATCH TO PHOTO BY FILENAME
 	return allPostData
 
 # Downloads the file at the given URL to a specified folder
@@ -249,8 +268,8 @@ def downloadFile(url):
 	f.write(fileData)
 	f.close()
 	
-	# TODO: ADD CODE TO UPLOAD PHOTO FILES & METADATA TO PI BOX - SHOULD BE IN SIBLING FOLDER OF PHOTO METADATA - MATCH BY FILENAME
-	# TODO: ONCE FILES UPLOADED TO PI BOX, DELETE FROM WEB SERVER
+	# TODO: ADD CODE TO UPLOAD PHOTO FILES TO STORJ - MATCH BY FILENAME
+	# TODO: ONCE FILES UPLOADED TO STORJ, DELETE FROM WEB SERVER
 
 # Gets a user's recent Instagram posts earlier than the maxId, if given
 def getUserRecentMedia(maxId):
@@ -262,15 +281,16 @@ def getUserRecentMedia(maxId):
 	# Instantiate params
 	params = {
 	'access_token': accessToken,
-	'count': 20
+	'count': '20'
 	}
 	# Add maxId parameter to parameters if given
 	if maxId > 0:
-		params['max_id'] = maxId
+		params['max_id'] = str(maxId)
 	# Generate hashed signature per Instagram's security requirements
 	sig = generateSignature(endpoint, params)
 	# Add hashed signature to parameters
 	params['sig'] = sig
+	print '----- PARAMS ------', params
 	# Hit Instagram API
 	try:
 		response = requests.get(baseURL+endpoint, params=params)
@@ -284,12 +304,14 @@ def getUserRecentMedia(maxId):
 
 # Process the Instagram API recent media response object, extracting necessary info
 def processRecentMediaResponse(decodedResponse):
+	userId = session['userId']
 	itemIds = []
 	postData = {
 	'posts': [],
 	'highestMaxId': 0,
 	'minId': 0
 	}
+	print decodedResponse
 	# Iterate through decoded response and process each post
 	for item in decodedResponse['data']:
 		tempItem = {}
@@ -300,8 +322,8 @@ def processRecentMediaResponse(decodedResponse):
 		mediaType = ''
 		usersInPhoto = []
 		tags = []
-		location = {}
-		# Extract desired information
+		location = None
+		# Extract desired information	
 		itemId = int(item['id'].split('_')[0])
 		itemIds.append(itemId)
 		# Set the highestMaxId value - will use this to set the mostRecentItemId value later on
@@ -309,7 +331,7 @@ def processRecentMediaResponse(decodedResponse):
 		# Add the minId key-value to postData object so we can compare against maxId in getAllNewPosts and determine if further API calls are necessary
 		postData['minId'] = min(itemIds)
 		try:
-			timestamp = item['created_time']
+			timestamp = float(item['created_time'])
 		except Exception as e:
 			print
 			print '------- ERROR EXTRACTING ITEM TIMESTAMP -------', e
@@ -347,6 +369,8 @@ def processRecentMediaResponse(decodedResponse):
 			print
 			print '------- ERROR EXTRACTING ITEM TAGS -------', e
 		try:
+			item['location']['latitude']
+			location = {}
 			location['lat'] = item['location']['latitude']
 			location['long'] = item['location']['longitude']
 		except Exception as e:
@@ -361,10 +385,14 @@ def processRecentMediaResponse(decodedResponse):
 		tempItem['usersInPhoto'] = usersInPhoto
 		tempItem['tags'] = tags
 		tempItem['location'] = location
-		# Append tempItem objecct to postData 'posts' key-value list
-		postData['posts'].append(tempItem)
+
+		fileName = url.split('/')[-1].split('?')[0]
+
+		dataPoint = createDataPoint(userId=userId, dataPointType='photo', source='instagram', sourceData=tempItem, timestamp=timestamp, location=location, fileName=fileName)
+		# Append tempItem object to postData 'posts' key-value list
+		postData['posts'].append(dataPoint)
 	# Sort the 'posts' key-value list by the 'itemId' key in descending order
-	sortedPosts = sorted(postData['posts'], key=lambda k: k['itemId'], reverse=True)
+	sortedPosts = sorted(postData['posts'], key=lambda k: k['sourceData']['itemId'], reverse=True)
 	# Update the 'posts' key-value list in postData
 	postData['posts'] = sortedPosts
 	# Return the postData object

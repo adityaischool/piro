@@ -5,8 +5,8 @@ from models import APICredentials
 
 def getAPICredentials(apiName):
 	apiNameQueryResult = APICredentials.query.filter_by(apiName=apiName).first()
-	apiNameQueryResultDict = apiNameQueryResult.__dict__
 	try:
+		apiNameQueryResultDict = apiNameQueryResult.__dict__
 		apiKeyOrClientId = apiNameQueryResultDict['apiKeyOrClientId']
 	except Exception as e:
 		print

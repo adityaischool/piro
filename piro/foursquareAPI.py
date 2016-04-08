@@ -6,11 +6,16 @@ from piro import models, db
 from models import UserDevice,User
 from pprint import pprint
 from apiCredentials import getAPICredentials
+from dataPointBuilder import createDataPoint
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
-mongoDb = client.foursquare
-recentCheckinsDb = mongoDb.foursquareRecentCheckins
+# Instantiate Mongo data point db
+dataPointDb = client.dataPointDb
+dataPoints = dataPointDb.dataPoints
+# Instantiate Mongo Foursquare db
+foursquareDb = client.foursquare
+recentCheckinsDb = foursquareDb.foursquareRecentCheckins
 
 # Instantiate Foursquare API credentials
 API_KEY = getAPICredentials('foursquare')[0]
@@ -149,10 +154,25 @@ def getUserCheckinHistory():
 		recentCheckinsDb.update({'userId': userId}, {'$set': {'lastCheckinTimestamp': lastCheckinTimestamp}})
 		# Verify Mongo update
 		getMongoFolderContents()
-
+		# Download photos
 		downloadPhotos(checkinHistoryData)
-		# TODO: ADD CODE FOR DOWNLOADING PHOTOS LOCALLY & PUSHING TO PI BOX - MAYBE GET PHOTOS USING SEPARATE ENDPOINT?
-		# TODO: PUSH CHECKIN METADATA TO PI BOX
+		#dataPoints.remove({'source': 'foursquare'})
+		# Temporarily store dataPoints in Mongo
+		oldCount = dataPoints.count()
+		try:
+			dataPoints.insert(checkinHistoryData['data'])
+		except Exception as e:
+			print
+			print '------- ERROR WRITING DATA POINTS TO MONGO -------', e
+		# Verify that everything went to Mongo successfully
+		print "------- A LIST OF THE USER'S FOLDERS, SYNC SETTINGS, & CURSORS -------"
+		newCount = dataPoints.count()
+		print
+		print "------- NUMBER OF DATA POINTS ATTEMPTED TO ADD TO DATAPOINTS DB:", len(checkinHistoryData['data'])
+		print "------- SUCCESSFULLY ADDED", newCount - oldCount, 'NEW DATA POINTS TO DATAPOINTS DB -------'
+		
+		# TODO: SEND CHECKIN META DATA TO STORJ - WILL MATCH TO PHOTO BY FILENAME
+
 		return checkinHistoryData
 	else:
 		print
@@ -165,8 +185,8 @@ def downloadPhotos(checkinHistoryData):
 	maxDimension = ''
 	constructedUrl = ''
 	for checkin in checkinHistoryData['data']:
-		if len(checkin['photos']) > 0:
-			for photo in checkin['photos']:
+		if len(checkin['sourceData']['photos']) > 0:
+			for photo in checkin['sourceData']['photos']:
 				if max([int(photo['width']), int(photo['height'])]) >= 500:
 					maxDimension = '500'
 				elif max([int(photo['width']), int(photo['height'])]) < 500:
@@ -199,8 +219,8 @@ def downloadFile(url):
 	f.write(fileData)
 	f.close()
 	
-	# TODO: ADD CODE TO UPLOAD PHOTO FILES & METADATA TO PI BOX - SHOULD BE IN SIBLING FOLDER OF PHOTO METADATA - MATCH BY FILENAME
-	# TODO: ONCE FILES UPLOADED TO PI BOX, DELETE FROM WEB SERVER
+	# TODO: ADD CODE TO UPLOAD PHOTO FILES & METADATA TO STORJ - MATCH BY FILENAME
+	# TODO: ONCE FILES UPLOADED TO STORJ, DELETE FROM WEB SERVER
 
 # Gets & processes a page of results from the user's checkin history
 # Optionally takes a results limit, offset (for pagination), and an afterTimestamp,
@@ -244,6 +264,7 @@ def getRecentUserCheckinPage(limit=250, offset=0, afterTimestamp=0):
 	return processedCheckins
 
 def processCheckins(decodedResponse):
+	userId = session['userId']
 	checkinData = {'data': []}
 	# Iterate through decoded response and process each post
 	for checkin in decodedResponse['response']['checkins']['items']:
@@ -253,12 +274,12 @@ def processCheckins(decodedResponse):
 		checkinType = checkin['type']
 		timestamp = checkin['createdAt']
 		timeZoneOffset = checkin['timeZoneOffset']
-		shout = ''
-		location = {}
-		venueName = ''
-		venueCoords = {}
-		venueUrl = ''
-		event = ''
+		shout = None
+		location = None
+		venueName = None
+		venueCoords = None
+		venueUrl = None
+		event = None
 		photos = []
 		nearbyFriends = []
 		try:
@@ -267,6 +288,8 @@ def processCheckins(decodedResponse):
 			print
 			print '------- ERROR EXTRACTING CHECKIN SHOUT -------', e
 		try:
+			checkin['location']['lat']
+			location = {}
 			location['lat'] = checkin['location']['lat']
 			location['long'] = checkin['location']['lng']
 		except Exception as e:
@@ -278,6 +301,8 @@ def processCheckins(decodedResponse):
 			print
 			print '------- ERROR EXTRACTING CHECKIN VENUE -------', e
 		try:
+			checkin['venue']['location']['lat']
+			venueCoords = {}
 			venueCoords['lat'] = checkin['venue']['location']['lat']
 			venueCoords['long'] = checkin['venue']['location']['lng']
 		except Exception as e:
@@ -335,8 +360,21 @@ def processCheckins(decodedResponse):
 		tempCheckin['event'] = event
 		tempCheckin['photos'] = photos
 		tempCheckin['nearbyFriends'] = nearbyFriends
+
+		photoNames = []
+		for photo in tempCheckin['photos']:
+			photoNames.append(photo['urlSuffix'].split('/')[-1])
+
+		locationCoords = {}
+
+		if venueCoords is not None:
+			locationCoords = venueCoords
+		else:
+			locationCoords = location
+
+		dataPoint = createDataPoint(userId=userId, dataPointType='checkin', source='foursquare', sourceData=tempCheckin, timestamp=timestamp, location=locationCoords, fileName=photoNames, businessName=venueName)
 		# Append tempCheckin objecct to postData 'posts' key-value list
-		checkinData['data'].append(tempCheckin)
+		checkinData['data'].append(dataPoint)
 	# Return the postData object
 	return checkinData
 

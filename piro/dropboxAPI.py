@@ -7,11 +7,16 @@ from pprint import pprint
 from piro import models, db
 from models import User, UserDevice
 from apiCredentials import getAPICredentials
+from dataPointBuilder import createDataPoint
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
-mongoDb = client.dropbox
-dboxUserFolders = mongoDb.dboxUserFolders
+# Instantiate Mongo data point db
+dataPointDb = client.dataPointDb
+dataPoints = dataPointDb.dataPoints
+# Instantiate Mongo Dropbox db
+dropboxDb = client.dropbox
+dboxUserFolders = dropboxDb.dboxUserFolders
 
 # Instantiate Dropbox API credentials
 API_KEY = getAPICredentials('dropbox')[0]
@@ -166,6 +171,7 @@ def checkIfPhoto(fileToCheck):
 # Create & return a photo metadata object + the photo file path in Dropbox
 # so the photo can be downloaded and sent to pi box
 def processPhoto(photoFile):
+	userId = session['userId']
 	# Get photo Dropbox path
 	photoPath = photoFile.path_lower
 	# Create photoMetadata object to add values to later
@@ -176,7 +182,7 @@ def processPhoto(photoFile):
 	photoName = photoFile.name
 	photoDropboxId = photoFile.id.split(':')[1]
 	photoDimensions = {}
-	photoTimestamp = ''
+	photoTimestamp = None
 	photoLocation = None
 	try:
 		photoDimensions['width'] = photoMetadata.dimensions.width
@@ -203,7 +209,10 @@ def processPhoto(photoFile):
 	photoMetadataObj['photoDimensions'] = photoDimensions
 	photoMetadataObj['photoTimestamp'] = photoTimestamp
 	photoMetadataObj['photoLocation'] = photoLocation
-	return [photoPath, photoMetadataObj]
+
+	dataPoint = createDataPoint(userId=userId, dataPointType='photo', source='dropbox', sourceData=photoMetadataObj, timestamp=photoTimestamp, location=photoLocation, fileName=photoName)
+
+	return [photoPath, dataPoint]
 
 # Save the user's selected Dropbox folders to sync
 def saveUserFolderSelections(folders):
@@ -361,6 +370,7 @@ def getFilesFromFolder(folderPath):
 		# cursor = files.cursor
 		# updateFolderCursor(userId, folderPath, cursor)
 	photoData = []
+	dataPointObjects = []
 	# Iterate through files and check if each file is a photo.
 	# If file is a photo, create a metadata object for the
 	# photo and download the photo
@@ -376,13 +386,27 @@ def getFilesFromFolder(folderPath):
 				print
 		# Download each photo to temporary storage on web server
 		for i in range(len(photoData)):
-			downloadFile(photoData[i][0], photoData[i][1]['photoName'])
+			downloadFile(photoData[i][0], photoData[i][1]['fileName'])
+			dataPointObjects.append(photoData[i][1])
 	else:
 		print
 		print '------- NO NEW FILES! -------'
 		print
-
-	# TODO: SEND PHOTO META DATA TO PI BOX - SEND TO SIBLING FOLDER OF PHOTO DOWNLOADS - MATCH BY FILENAME
+	# Temporarily store dataPoints in Mongo
+	oldCount = dataPoints.count()
+	try:
+		dataPoints.insert(dataPointObjects)
+	except Exception as e:
+		print
+		print '------- ERROR WRITING DATA POINTS TO MONGO -------', e
+	# Verify that everything went to Mongo successfully
+	print "------- A LIST OF THE USER'S FOLDERS, SYNC SETTINGS, & CURSORS -------"
+	newCount = dataPoints.count()
+	print
+	print "------- NUMBER OF DATA POINTS ATTEMPTED TO ADD TO DATAPOINTS DB:", len(dataPointObjects)
+	print "------- SUCCESSFULLY ADDED", newCount - oldCount, 'NEW DATA POINTS TO DATAPOINTS DB -------'
+	
+	# TODO: SEND PHOTO META DATA TO STORJ - WILL MATCH TO PHOTO BY FILENAME
 
 # Downloads the file at the given path to a specified folder
 def downloadFile(filePath, fileName):
@@ -394,8 +418,8 @@ def downloadFile(filePath, fileName):
 	# Download file at from specified Dropbox path to specified local path
 	fileMetadata = dbox.files_download_to_file(downloadDirectory+fileName, filePath)
 	
-	# ADD CODE TO UPLOAD PHOTO FILES & METADATA TO PI BOX - SHOULD BE IN SIBLING FOLDER OF PHOTO METADATA - MATCH BY FILENAME
-	# ONCE FILES UPLOADED TO PI BOX, DELETE FROM WEB SERVER
+	# ADD CODE TO UPLOAD PHOTO FILES TO STORJ - WILL MATCH TO DATAPOINT BY FILENAME
+	# ONCE FILES UPLOADED TO STORJ, DELETE FROM WEB SERVER
 	print
 	print fileMetadata
 

@@ -1,5 +1,4 @@
-from flask import render_template, request, session, redirect, jsonify, Response, escape
-from flask import url_for
+from flask import render_template, request, session, redirect, jsonify, Response, escape, url_for
 from piro import app, models, db
 import urllib2,fitoauth
 import math
@@ -10,12 +9,13 @@ from libraries import pythonfitbitmaster as pythonfitbitmaster
 from libraries.pythonfitbitmaster import foauth2
 import fitbit
 from models import User, UserDevice
-from piro import hitFitbitApi
+# from piro import hitFitbitApi
 from facebookLongTermTokenFetcher import fetchLongTermFacebookToken
 import md5, base64
 import lastfmAPI, dropboxAPI, instagramAPI, fitbitAPI, foursquareAPI, forecastioAPI
 from pprint import pprint
 from apiCredentials import setAPICredentials
+import diskGenerator
 
 @app.route('/')
 @app.route('/index')
@@ -65,6 +65,7 @@ def login():
 			session['userId'] = userId
 			session['email'] = email
 			session['onboarded'] = onboarded
+			session['timezone'] = timezone
 			return redirect('/index')
 		# If username not in db, notify user that the username does not exist - let them reenter
 		else:
@@ -105,6 +106,7 @@ def submitRegistration():
 		userId = ''
 		user = ''
 		onboarded = False
+		timezone = escape(request.form['timezone']).encode('utf-8')
 		# First check if username or email in the User table
 		# TODO: ADD LOGIC FOR PASSWORDS LATER
 		usernameQueryResults = User.query.filter_by(name=username).first()
@@ -121,7 +123,7 @@ def submitRegistration():
 			# Create User db record
 
 			# TODO: GET USER'S ACTUAL PI MAC ADDRESSS
-			user = User(userId, username, email, onboarded, '0000000000000000')
+			user = User(userId, username, email, onboarded, timezone, '0000000000000000')
 			# Add and commit newly created User db record
 			db.session.add(user)
 			db.session.commit()
@@ -130,6 +132,7 @@ def submitRegistration():
 			session['userId'] = userId
 			session['email'] = email
 			session['onboarded'] = onboarded
+			session['timezone'] = timezone
 			# Finally, redirect user to index
 			return redirect('/index')
 		# If username exists in db already but email doesn't, notify user as such and let them try a new username
@@ -149,6 +152,8 @@ def submitRegistration():
 # USE THIS FOR TESTING DIFFERENT API FUNCTIONALITY
 @app.route('/test-api')
 def testAPIButton():
+	userId = session['userId']
+	# instagramAPI.resetMostRecentItemId()
 	# instagramAPI.getAllNewPosts()
 
 	# foursquareAPI.resetMostRecentItemId()
@@ -157,10 +162,13 @@ def testAPIButton():
 	# lastfmAPI.resetMostRecentPlaybackTimestamp()
 	# lastfmAPI.getUserHistoricalPlays()
 
+	# dropboxAPI.resetUserFolderCursors()
 	# dropboxAPI.pollUserSelectedFolders()
 
 	# fitbitAPI.resetLastFitbitSyncDate()
 	# fitbitAPI.pollRecentFitbitData()
+
+	diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
 
 	# setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
 	# setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
@@ -169,7 +177,7 @@ def testAPIButton():
 	# setAPICredentials('dropbox', 'f2ysiyl8imtvz0g', '6pk00rjwh5s24cr')
 	# setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
 
-	forecastioAPI.getWeatherAtTime('37.866795', '-122.262635', '2015-06-20T12:00:00')
+	# forecastioAPI.getWeatherAtTime('37.866795', '-122.262635', '2015-06-20T12:00:00')
 	return redirect('service_authorization')
 
 # A function to be called to poll all of user's authorized apps/services

@@ -12,9 +12,6 @@ ENDPOINT = 'https://api.forecast.io/forecast/'
 COMMA = '%2C'
 
 
-
-# API calls to Forecast.io for historical data should be in the format
-# https://api.forecast.io/forecast/APIKEY/LATITUDE,LONGITUDE,TIME
 # TIME should be a UNIX timestamp or a string formatted as follows: [YYYY]-[MM]-[DD]T[HH]:[MM]:[SS]
 def getWeatherAtTime(latitude, longitude, timestamp):
 

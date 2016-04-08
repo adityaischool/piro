@@ -12,10 +12,23 @@
 	<h3>Let's get you registered</h3>
 	<form action="submit-registration" method='post'>
 		<label class="survey-item">What's your name?
-		<input type="text" name="username"></label>
-		<label class="survey-item">What's your email?
-		<input type="text" name="email">
+			<input type="text" name="username">
 		</label>
+
+		<label class="survey-item">What's your email?
+			<input type="text" name="email">
+		</label>
+
+		<label class="survey-item">Please select your timezone
+			<select name="timezone">
+				<option value="America/New_York">New York (Eastern)</option>
+				<option value="America/Chicago">Chicago (Central)</option>
+				<option value="America/Denver">Denver (Mountain)</option>
+				<option value="America/Los_Angeles">Lost Angeles (Pacific)</option>
+				<option value="Pacific/Honolulu">Honolulu (Hawaiian)</option>
+			</select>
+		</label>
+
 		<input class="action-button" id="login" type="submit" value="Submit">
 	</form>
 </div>

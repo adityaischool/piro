@@ -6,23 +6,26 @@ class User(db.Model):
     name = db.Column(db.String(120), unique=False)
     email = db.Column(db.String(120))
     onboarded = db.Column(db.Boolean, unique=False)
+    timezone = db.Column(db.String(120), unique=False)
     userpimac = db.Column(db.String(120), unique=False)
-    #when server recieves a mac, we pull in all userids associated with
+    # When server recieves a mac, we pull in all userids associated with
     # that mac and then for each user we hit user devices
-    #for their respective device auth keys and hit those apis
-    # You need to a relationship to Address table here
+    # for their respective device auth keys and hit those apis.
+    # You need to a relationship to Address table here...
     # see http://flask-sqlalchemy.pocoo.org/2.1/models/#one-to-many-relationships
-    def __init__(self, userid, name, email, onboarded, userpimac):
+    def __init__(self, userid, name, email, onboarded, timezone, userpimac):
         self.userid = userid
         self.name = name
         self.email = email
         self.onboarded = onboarded
+        self.timezone = timezone
         self.userpimac = userpimac
     def __repr__(self):
         return "<User %r>" % self.name+\
         "--- userid = "+self.userid+\
         "--- user-email = "+self.email+\
         "--- onboarded = "+self.onboarded+\
+        "--- timezone = "+self.timezone+\
         "--- userpimac = "+self.userpimac
 
 class UserDevice(db.Model):

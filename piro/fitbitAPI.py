@@ -154,6 +154,9 @@ def pollRecentFitbitData():
 	while True:
 		# Check if lastSyncDate is yesterday - if so, update Mongo with current lastSyncDate & break loop
 		if checkIfLastSyncDateIsYesterday(lastSyncDate):
+			print
+			print '------- FITBIT DATA SYNCED THROUGH YESTERDAY,', lastSyncDate,'-------'
+			print
 			break
 		print
 		print "------- SLEEPING 48 SECONDS PER FITBIT'S RATE LIMITS -------"

@@ -6,11 +6,16 @@ from piro import models, db
 from models import UserDevice,User
 from pprint import pprint
 from apiCredentials import getAPICredentials
+from dataPointBuilder import createDataPoint
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
-mongoDb = client.lastfm
-recentSongPlaysDb = mongoDb.lastfmRecentSongPlaysDb
+# Instantiate Mongo data point db
+dataPointDb = client.dataPointDb
+dataPoints = dataPointDb.dataPoints
+# Instantiate Mongo Last.fm db
+lastfmDb = client.lastfm
+recentSongPlaysDb = lastfmDb.lastfmRecentSongPlaysDb
 
 # Instantiate Last.fm API credentials
 API_KEY = getAPICredentials('lastfm')[0]
@@ -189,7 +194,7 @@ def getUserHistoricalPlays():
 	while True:
 		try:
 			print
-			print '------- CALLING PAGE', page, 'OF LAST.FM API WITH TIMESTAMP', fromTimestamp, '-------'
+			print '------- CALLING PAGE', page, 'OF LAST.FM API SINCE TIMESTAMP', fromTimestamp, '-------'
 			decodedResponse = callAPI(page, fromTimestamp)
 			responseTracks = decodedResponse['recenttracks']['track']
 			print '------- PAGE', page, 'OF RESULTS HAS', len(responseTracks), 'TRACKS TO PROCESS -------'
@@ -199,8 +204,8 @@ def getUserHistoricalPlays():
 				# Extract track info
 				for track in responseTracks:
 					processedTrack = processTrack(track)
-					if processedTrack['playbackTimestamp'] > mostRecentlyPlayedTimestamp:
-						mostRecentlyPlayedTimestamp = processedTrack['playbackTimestamp']
+					if processedTrack['timestamp'] > mostRecentlyPlayedTimestamp:
+						mostRecentlyPlayedTimestamp = processedTrack['timestamp']
 					historicalPlaysObject['data'].append(processedTrack)
 			else:
 				print
@@ -218,8 +223,22 @@ def getUserHistoricalPlays():
 	print
 	print "---------- THERE WERE", len(historicalPlaysObject['data']), "NEW SONG PLAYBACKS -----------"
 	print
-	# Send processed track data to pi box
-	saveToBox(historicalPlaysObject)
+
+	if len(historicalPlaysObject['data']) > 0:
+		# Temporarily store dataPoints in Mongo
+		oldCount = dataPoints.count()
+		try:
+			dataPoints.insert(historicalPlaysObject['data'])
+		except Exception as e:
+			print
+			print '------- ERROR WRITING DATA POINTS TO MONGO -------', e
+		# Verify that everything went to Mongo successfully
+		newCount = dataPoints.count()
+		print
+		print "------- NUMBER OF DATA POINTS ATTEMPTED TO ADD TO DATAPOINTS DB:", len(historicalPlaysObject['data'])
+		print "------- SUCCESSFULLY ADDED", newCount - oldCount, 'NEW DATA POINTS TO DATAPOINTS DB -------'
+		
+		# TODO: SEND DATA POINTS TO STORJ
 
 # Function to update Mongo with mostRecentlyPlayedTimestamp
 def updateMongoMostRecentSongPlaybackTimestamp(mostRecentlyPlayedTimestamp):
@@ -230,6 +249,7 @@ def updateMongoMostRecentSongPlaybackTimestamp(mostRecentlyPlayedTimestamp):
 
 # Extract & bundle relevant data for given track
 def processTrack(track):
+	userId = session['userId']
 	processedTrack = {}
 	try:
 		trackName = track['name'].encode('utf-8')
@@ -240,7 +260,7 @@ def processTrack(track):
 	except Exception as e:
 		print "----- ERROR GETTING TRACK ARTIST -----", e
 	try:
-		playbackTimestamp = track['date']['uts']
+		playbackTimestamp = float(track['date']['uts'])
 	except Exception as e:
 		print "----- ERROR GETTING TRACK PLAYBACK TIMESTAMP -----", e
 	try:
@@ -253,15 +273,8 @@ def processTrack(track):
 	processedTrack['playbackTimestamp'] = playbackTimestamp
 	processedTrack['imageUrl'] = imageUrl
 	# Return processed track
-	return processedTrack
-
-
-def saveToBox(trackPlaybackObject):
-	pass
-	# print trackPlaybackObject
-	# NEED TO ADD LOGIC TO ENCRYPT & WRITE OBJECT DATA TO THE BOX
-	# ALSO NEED LOGIC TO SAVE TO WEB SERVER TEMPORARILY IN CASE BOX IS UNREACHABLE (DELETE FROM WEB SERVER AFTER SUCCESSFULLY WRITING TO BOX)
-
+	dataPoint = createDataPoint(userId=userId, dataPointType='song', source='lastfm', sourceData=processedTrack, timestamp=playbackTimestamp, location=None, fileName=None)
+	return dataPoint
 
 if __name__ == '__main__':
 	# getUserRecentPlays()
