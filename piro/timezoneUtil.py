@@ -1,17 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from pytz import timezone
 import requests
-
-from yelp.client import Client
-from yelp.oauth1_authenticator import Oauth1Authenticator
-
-auth = Oauth1Authenticator(
-    consumer_key='XWZTKVrlIf0n8Gyxmgihkg',
-    consumer_secret='wHdF8zUBnWcJ_rceQbK18ZcwSeI',
-    token='UP_PXflQ4LeMWMLKvrkxGzUxc_B_GMLI',
-    token_secret='p1SmFEYZbkQknMGte5yqTY2OpeQ'
-)
-yelpClient = Client(auth)
+from pprint import pprint
+from flask import session
 
 # Generate & return a datetime object from a Unix timestamp
 def createDatetimeFromTimestamp(timestamp):
@@ -21,34 +12,63 @@ def utcFromDatetime(datetimeObject):
 	timestamp = (datetimeObject - datetime(1970, 1, 1)).total_seconds()
 	return timestamp
 
+def datetimeObjFromYYYYMMDD(yyyymmdd):
+	year = int(yyyymmdd[:4])
+	month = int(yyyymmdd[4:6])
+	day = int(yyyymmdd[6:])
+
+	datetimeObject = datetime(year, month, day)
+	return datetimeObject
+
+def localizedDatetimeObjFromYYYYMMDD(yyyymmdd):
+	locale = timezone(session['timezone'])
+	year = int(yyyymmdd[:4])
+	month = int(yyyymmdd[4:6])
+	day = int(yyyymmdd[6:])
+
+	datetimeObject = datetime(year, month, day, tzinfo=locale)
+	return datetimeObject
+
+def yyyymmddFromDatetimeObj(datetimeObj):
+	year = str(datetimeObj.year)
+	month = datetimeObj.month
+	if month < 10:
+		month = "0" + str(month)
+	else:
+		month = str(month)
+	day = datetimeObj.day
+	if day < 10:
+		day = "0" + str(day)
+	else:
+		day = str(day)
+	# Concatenate
+	formattedDate = year + month + day
+	return formattedDate
+
+def localizedDatetimeObjToReadableDate(localizedDatetimeObj):
+	readableDate = localizedDatetimeObj.strftime('%a %b %d, %Y')
+	print readableDate
+	return readableDate
+
 # Generate a timezone-adjusted Unix timestamp
 def getLocalizedTimestamp(locale, timestamp):
 	timestamp = timestamp
 	adjustedTimestamp = 0
 	tz = timezone(locale)
 	datetimeObject = createDatetimeFromTimestamp(timestamp)
-	# localizedTimestamp = datetimeObject.astimezone(tz)
 	rawOffset = timezone(locale).localize(datetimeObject).strftime('%z')
-	# print
-	# print '------- UTC TIMESTAMP -------', timestamp
-	# print '------- UTC DATETIME -------', datetimeObject
-	# print '------- LOCALE -------', locale
-	# print '------- TIMEZONE OFFSET -------', rawOffset
 	# Convert offset into seconds
 	offsetOperator = rawOffset[0]
 	offsetHours = int(rawOffset[1:3])
 	offsetMinutes = int(rawOffset[3:])
 	offsetTotalMinutes = (offsetHours * 60) + offsetMinutes
 	offsetSeconds = offsetTotalMinutes * 60
-	# print '------- OFFSET SECONDS -------', offsetSeconds
 	# Determine whether or not to add or subtract offset amount
 	if offsetOperator == '-':
 		adjustedTimestamp = timestamp - offsetSeconds
 	elif offsetOperator == '+':
 		adjustedTimestamp = timestamp + offsetSeconds
 	adjustedDatetimeObject = createDatetimeFromTimestamp(adjustedTimestamp)
-	# print '------- ADJUSTED TIMESTAMP -------', adjustedTimestamp
-	# print '------- ADJUSTED DATETIME -------', adjustedDatetimeObject
 	return adjustedTimestamp
 
 # Generates a date as a string in format YYYYMMDD
@@ -69,9 +89,6 @@ def formattedDateGenerator(localizedTimestamp):
 		day = str(day)
 	# Concatenate date parts
 	formattedDate = year + month + day
-	# print
-	# print '------- DATETIME OBJECT -------', datetimeObject
-	# print '------- FORMATTED DATE -------', formattedDate 
 	return formattedDate
 
 # Subtracts 4 hours from a timestamp because we're starting
@@ -82,10 +99,6 @@ def adjustedDateGenerator(localizedTimestamp):
 	offsetSeconds = offsetHours * 60 * 60
 	adjustedTimestamp = localizedTimestamp - offsetSeconds
 	adjustedDate = formattedDateGenerator(adjustedTimestamp)
-	# print
-	# print '------- ORIGINAL LOCALIZED TIMESTAMP', localizedTimestamp
-	# print '------- ADJUSTED LOCALIZED TIMESTAMP', adjustedTimestamp
-	# print '------- ADJUSTED DATE FOR DAY STARTING AT', offsetHours, 'AM -------', adjustedDate
 	return adjustedDate
 
 # Use the Geonames API to determine which time zone a pair of coordinates falls within
@@ -107,9 +120,54 @@ def coordsToTimezoneLocale(latitude, longitude):
 		print
 		print '------- ERROR GETTING TIMEZONE LOCALE FROM GEONAMES -------', e
 		return None
-	# print
-	# print '------- TIMEZONE LOCALE FOR LAT:', latitude, "& LONG:", longitude, '-------', timezoneLocale
 	return timezoneLocale
+
+# Use the Geonames API to geocode a place name into a pair of coordinates
+def geocode(placeName):
+	baseUrl = 'http://api.geonames.org'
+	endpoint = '/postalCodeSearchJSON'
+	constructedUrl = baseUrl + endpoint
+	# Remove space in given placeName argument
+	splitName = placeName.split(' ')
+	city = splitName[0]
+	state = splitName[1]
+	placeName = city + state
+
+	params = {
+	'placename': placeName,
+	'maxRows': '1',
+	'style': 'full',
+	'username': 'jalexander620@gmail.com'
+	}
+	# Hit the Geonames API
+	try:
+		response = requests.get(constructedUrl, params=params)
+	except Exception as e:
+		print
+		print '------- ERROR HITTING THE GEONAMES API -------', e
+		print
+		return None
+	try:
+		decodedResponse = response.json()
+	except Exception as e:
+		print
+		print '------- ERROR DECODING GEONAMES RESPONSE -------', e
+		print
+		return None
+	try:
+		firstResult = decodedResponse['postalCodes'][0]
+	except Exception as e:
+		print
+		print '------- ERROR GETTING PLACE NAME FROM RESPONSE -------', e
+		print
+		return None
+	latitude = str(firstResult['lat'])
+	longitude = str(firstResult['lng'])
+	coords = {
+	'latitude': latitude,
+	'longitude': longitude
+	}
+	return coords
 
 # Use the Geonames API to reverse geocode a pair of coordinates into a place name
 def reverseGeocode(latitude, longitude):
@@ -124,7 +182,12 @@ def reverseGeocode(latitude, longitude):
 	}
 	constructedUrl = baseUrl + endpoint
 	# Hit the Geonames API
-	response = requests.get(constructedUrl, params=params)
+	try:
+		response = requests.get(constructedUrl, params=params)
+	except Exception as e:
+		print
+		print '------- ERROR HITTING THE GEONAMES API -------', e
+		print
 	decodedResponse = response.json()
 	firstResult = decodedResponse['postalCodes'][0]
 	# Try to get the city or county/local administrative region name
@@ -153,35 +216,52 @@ def reverseGeocode(latitude, longitude):
 	placeName += ', '
 	if state != '':
 		placeName += state
-	# print '------- PLACE NAME -------', placeName
+	# Return None if neither city nor administrative name was found
 	if placeName == ', ':
 		return None
 	return placeName
 
-# Use Yelp's API to find the closest business name from a pair of coordinates
-# NOT CURRENTLY WORKING PROPERLY - NOT SORTING CORRECTLY AS OF 4/7/2016
+from apiCredentials import getAPICredentials
+# Instantiate Foursquare API credentials
+API_KEY = getAPICredentials('foursquare')[0]
+SECRET = getAPICredentials('foursquare')[1]
+API_VERSION = '20160324'
+MODE = 'swarm'
+
+# Use Foursquare's API to find the closest business name from a pair of coordinates
+# NOT CURRENTLY WORKING PROPERLY - FOURSQUARE NOT GIVING ACCURATE RESULTS - MAYBE TRY GOOGLE PLACES API?
 def reverseGeocodeBusiness(latitude, longitude):
+	baseUrl = 'https://api.foursquare.com/v2/'
+	endpoint = 'venues/search'
 	params = {
-	'radius_filter': '25', #Radius in meters
-	'sort': '1', #Sort by distance (DOES NOT WORK)
-	'limit': '5'
+	'll': str(latitude)+','+str(longitude),
+	'radius': '100',
+	'intent': 'browse',
+	'v': API_VERSION,
+	'm': MODE,
+	'client_id': API_KEY,
+	'client_secret': SECRET
 	}
-	# Hit the Yelp API
-	response = yelpClient.search_by_coordinates(latitude, longitude, params)
-	print '------- RESPONSE -------'
-	for business in response.businesses:
+
+	constructedUrl = baseUrl + endpoint
+
+	response = requests.get(constructedUrl, params=params)
+	decodedResponse = response.json()
+	print
+	print '------- FOURSQUARE RESPONSE -------'
+	#pprint(decodedResponse)
+
+	for venue in decodedResponse['response']['venues']:
 		print
-		print 'name:', business.name
-		print 'image_url:', business.image_url
-		print 'location:', business.location.address
-		print 'latitude:', business.location.coordinate.latitude
-		print 'longitude:', business.location.coordinate.longitude
+		print venue['name'].encode('utf-8')
+		print venue['location']['distance']
+		
 
 
 
 if __name__ == '__main__':
 	# getLocalizedTimestamp('America/Los_Angeles', 1460067767)
-	adjustedDateGenerator(getLocalizedTimestamp('America/Los_Angeles', 1460024566))
+	# adjustedDateGenerator(getLocalizedTimestamp('America/Los_Angeles', 1460024566))
 	# coordsToTimezoneLocale(37.8734855,-122.2597169)
 	# reverseGeocode(37.8734855,-122.2597169)
-	# reverseGeocodeBusiness(37.8734855,-122.2597169)
+	reverseGeocodeBusiness(37.8734855,-122.2597169)

@@ -185,7 +185,6 @@ def callAPI(page=None, fromTimestamp=0):
 
 # Get a user's play history starting with the most recently captured song playback timestamp, if available
 def getUserHistoricalPlays():
-	# resetMostRecentPlaybackTimestamp()
 	historicalPlaysObject = {'data': []}
 	fromTimestamp = getLastPlaybackTimestamp()
 	mostRecentlyPlayedTimestamp = fromTimestamp

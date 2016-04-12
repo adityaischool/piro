@@ -16,6 +16,7 @@ import lastfmAPI, dropboxAPI, instagramAPI, fitbitAPI, foursquareAPI, forecastio
 from pprint import pprint
 from apiCredentials import setAPICredentials
 import diskGenerator
+import timezoneUtil
 
 @app.route('/')
 @app.route('/index')
@@ -61,6 +62,7 @@ def login():
 			userId = usernameQueryResultsDict['userid']
 			email = usernameQueryResultsDict['email']
 			onboarded = usernameQueryResultsDict['onboarded']
+			timezone = usernameQueryResultsDict['timezone']
 			session['username'] = username
 			session['userId'] = userId
 			session['email'] = email
@@ -156,8 +158,8 @@ def testAPIButton():
 	# instagramAPI.resetMostRecentItemId()
 	# instagramAPI.getAllNewPosts()
 
-	# foursquareAPI.resetMostRecentItemId()
-	# foursquareAPI.getUserCheckinHistory()
+	foursquareAPI.resetMostRecentItemId()
+	foursquareAPI.getUserCheckinHistory()
 
 	# lastfmAPI.resetMostRecentPlaybackTimestamp()
 	# lastfmAPI.getUserHistoricalPlays()
@@ -168,7 +170,11 @@ def testAPIButton():
 	# fitbitAPI.resetLastFitbitSyncDate()
 	# fitbitAPI.pollRecentFitbitData()
 
-	diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
+	# diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
+	
+	# diskGenerator.generateHistoricalDisks(userId)
+
+	# timezoneUtil.reverseGeocodeBusiness(37.880265, -122.268560)
 
 	# setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
 	# setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
@@ -176,6 +182,7 @@ def testAPIButton():
 	# setAPICredentials('lastfm', '070094824815e5b8dc5fcfbc5a2f723f', '3afa4374733f63f58bd6e5b5962cbbb6')
 	# setAPICredentials('dropbox', 'f2ysiyl8imtvz0g', '6pk00rjwh5s24cr')
 	# setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
+	# setAPICredentials('spotify', '3a1f5d8baa2149b48d9a8128bcc48c05', 'ce6cc2bd81324433984c3f7ab55155b0')
 
 	# forecastioAPI.getWeatherAtTime('37.866795', '-122.262635', '2015-06-20T12:00:00')
 	return redirect('service_authorization')

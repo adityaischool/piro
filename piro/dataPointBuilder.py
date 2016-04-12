@@ -3,6 +3,7 @@ from pprint import pprint
 from piro import models, db
 from models import User
 from datetime import datetime
+from forecastioAPI import getWeatherAtTime
 
 def createDataPoint(userId, dataPointType, source, sourceData, timestamp, location=None, fileName=None, businessName=None, businessPhotoUrl=None):
 	timestamp = timestamp

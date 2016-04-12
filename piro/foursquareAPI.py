@@ -53,7 +53,7 @@ def codeFlow(code):
 		decodedResponse = response.json()
 		print
 		print "------- FOURSQUARE ACCESS TOKEN RESPONSE -------"
-		pprint(decodedResponse)
+		# pprint(decodedResponse)
 		print
 	except Exception as e:
 		print
@@ -141,11 +141,11 @@ def getUserCheckinHistory():
 				break
 			for checkin in pageOfCheckinData:
 				checkinHistoryData['data'].append(checkin)
-			offset += 250
 		except Exception as e:
 			print
 			print '------- ERROR FETCHING CHECKIN DATA -------', e
 			print
+		offset += 250
 	# If there were any results, update the lastCheckinTimestamp in Mongo
 	if len(checkinHistoryData['data']) > 0:
 		# Set user's lastCheckinTimestamp to most recent checkin timestamp + 3 seconds (as not to include the last checkin in the next API call results)
@@ -155,8 +155,12 @@ def getUserCheckinHistory():
 		# Verify Mongo update
 		getMongoFolderContents()
 		# Download photos
-		downloadPhotos(checkinHistoryData)
-		#dataPoints.remove({'source': 'foursquare'})
+		for checkin in checkinHistoryData['data']:
+			if len(checkin['sourceData']['photos']) > 0:
+				for photo in checkin['sourceData']['photos']:
+					downloadUrl = getDownloadUrl(photo)
+					downloadFile(downloadUrl)
+		# dataPoints.remove({'source': 'foursquare'})
 		# Temporarily store dataPoints in Mongo
 		oldCount = dataPoints.count()
 		try:
@@ -180,20 +184,18 @@ def getUserCheckinHistory():
 		print
 		return False
 
-# Download copies of checkin photos to the staging area, then push to pi box
-def downloadPhotos(checkinHistoryData):
+# Get the download url for the given photo object
+def getDownloadUrl(photo):
 	maxDimension = ''
 	constructedUrl = ''
-	for checkin in checkinHistoryData['data']:
-		if len(checkin['sourceData']['photos']) > 0:
-			for photo in checkin['sourceData']['photos']:
-				if max([int(photo['width']), int(photo['height'])]) >= 500:
-					maxDimension = '500'
-				elif max([int(photo['width']), int(photo['height'])]) < 500:
-					maxDimension = '300'
-				constructedUrl = photo['urlPrefix'] + 'cap' + maxDimension + photo['urlSuffix']
-				downloadFile(constructedUrl)
-
+	if max([int(photo['width']), int(photo['height'])]) >= 500:
+		maxDimension = '500'
+	elif max([int(photo['width']), int(photo['height'])]) < 500:
+		maxDimension = '300'
+	constructedUrl = photo['urlPrefix'] + 'cap' + maxDimension + photo['urlSuffix']
+	
+	print '--------- CONSTRUCTED PHOTO URL ---------', constructedUrl
+	return constructedUrl
 
 # Downloads the file at the given URL to a specified folder
 def downloadFile(url):
@@ -229,8 +231,8 @@ def getRecentUserCheckinPage(limit=250, offset=0, afterTimestamp=0):
 	userId = session['userId']
 	# Fetch user's access token from UserDevice table
 	accessToken = getAccessToken()
-	baseURL = 'https://api.foursquare.com/v2'
-	endpoint = '/users/self/checkins'
+	baseURL = 'https://api.foursquare.com/v2/'
+	endpoint = 'users/self/checkins'
 	# Instantiate params
 	params = {
 	'oauth_token': accessToken,
@@ -253,17 +255,20 @@ def getRecentUserCheckinPage(limit=250, offset=0, afterTimestamp=0):
 	try:
 		response = requests.get(baseURL+endpoint, params=params)
 		decodedResponse = response.json()
-		pprint(decodedResponse)
+		# pprint(decodedResponse)
 	except Exception as e:
 		print
 		print "------- ERROR HITTING FOURSQUARE API -------", e
 		print
 	# Return the results of calling processCheckins with decodedResponse
 	processedCheckins = processCheckins(decodedResponse)
-	pprint(processedCheckins)
+	# pprint(processedCheckins)
 	return processedCheckins
 
 def processCheckins(decodedResponse):
+	print
+	print '------- PROCESSING DECODED RESPONSE -------'
+	# pprint(decodedResponse)
 	userId = session['userId']
 	checkinData = {'data': []}
 	# Iterate through decoded response and process each post
@@ -279,6 +284,7 @@ def processCheckins(decodedResponse):
 		venueName = None
 		venueCoords = None
 		venueUrl = None
+		venueId = None
 		event = None
 		photos = []
 		nearbyFriends = []
@@ -300,6 +306,16 @@ def processCheckins(decodedResponse):
 		except Exception as e:
 			print
 			print '------- ERROR EXTRACTING CHECKIN VENUE -------', e
+		try:
+			venueId = checkin['venue']['id']
+		except Exception as e:
+			print
+			print '------- ERROR EXTRACTING CHECKIN VENUE ID -------', e
+		try:
+			venuePhotoUrl = getDownloadUrl(getVenuePhoto(venueId))
+		except Exception as e:
+			print
+			print '------- ERROR EXTRACTING CHECKIN VENUE PHOTO URL -------', e
 		try:
 			checkin['venue']['location']['lat']
 			venueCoords = {}
@@ -353,9 +369,11 @@ def processCheckins(decodedResponse):
 		tempCheckin['timeZoneOffset'] = timeZoneOffset
 		tempCheckin['shout'] = shout
 		tempCheckin['location'] = location
+		tempCheckin['venueId'] = venueId
 		tempCheckin['venueName'] = venueName
 		tempCheckin['venueCoords'] = venueCoords
 		tempCheckin['venueUrl'] = venueUrl
+		tempCheckin['venuePhotoUrl'] = venuePhotoUrl
 		tempCheckin['venueCoords'] = venueCoords
 		tempCheckin['event'] = event
 		tempCheckin['photos'] = photos
@@ -377,6 +395,49 @@ def processCheckins(decodedResponse):
 		checkinData['data'].append(dataPoint)
 	# Return the postData object
 	return checkinData
+
+def getVenuePhoto(venueId):
+	baseUrl = 'https://api.foursquare.com/v2/'
+	endpoint = 'venues/'+venueId+'/photos'
+	params = {
+	'v': API_VERSION,
+	'm': 'foursquare',
+	'client_id': API_KEY,
+	'client_secret': SECRET,
+	'group': 'venue'
+	}
+
+	constructedUrl = baseUrl + endpoint
+
+	response = requests.get(constructedUrl, params=params)
+	decodedResponse = response.json()
+	# print
+	# print '------- FOURSQUARE VENUE PHOTOS RESPONSE -------'
+	# pprint(decodedResponse)
+
+	for photo in decodedResponse['response']['photos']['items']:
+		tempPhoto = {}
+		source = None
+		try:
+			source = photo['source']['name']
+		except Exception as e:
+			print
+			print '------- ERROR GETTING FOURSQUARE VENUE PHOTO SOURCE -------', e
+			print
+		# Only use Instagram-taken photos because they tend to be higher quality
+		if source == 'Instagram':
+			try:
+				tempPhoto['height'] = photo['height']
+				tempPhoto['width'] = photo['width']
+				tempPhoto['id'] = photo['id']
+				tempPhoto['urlPrefix'] = photo['prefix']
+				tempPhoto['urlSuffix'] = photo['suffix']
+				return tempPhoto
+			except:
+				continue
+		else:
+			continue
+	return None
 
 # Check whether or not the user has authorized access to Foursquare or not
 def checkIfFoursquareAuthorized():
