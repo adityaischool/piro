@@ -17,6 +17,7 @@ from pprint import pprint
 from apiCredentials import setAPICredentials
 import diskGenerator
 import timezoneUtil
+import metaclient
 
 @app.route('/')
 @app.route('/index')
@@ -437,3 +438,9 @@ def getdata():
 	print "-----------\n-----\n---activities-----\n\n\n"
 	print aut_cl.activities(date='2015-12-24')
 	return redirect('/dashboard')
+
+@app.route('/myfiles', methods=['GET', 'POST'])
+def myfiles():
+	# userId = session['userId']
+	files=metaclient.returnfiles()
+	return render_template('myfiles.html', files=files)
