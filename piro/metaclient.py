@@ -1,4 +1,4 @@
-import metadisk,hashlib
+import metadisk,hashlib,os
 # Get all registered public keys
 (private_key, public_key) = metadisk.generate_new_key_pair()
 print metadisk.authenticate(email='bigchobbit@gmail.com', password=hashlib.sha256(b'12345678').hexdigest())
@@ -38,3 +38,16 @@ def returnfiles():
 
 def gethashidformetadiskid():
 	return "TBD"
+
+def storefiles(bucketid,filepath):
+	#Usage: Pass in the bucket name and directory of file staging
+	#Will return a hash id for the (metadisk file on storj)
+	print "current directory \n",os.path.dirname(__file__)
+	"""bucketid="as"
+	listbuckets=metadisk.buckets.all()
+	for l in listbuckets:
+		print l.id
+		bucketid=l.id
+	new_bucket=metadisk.buckets.get(bucketid)
+	print "new bucket id \n",new_bucket.id,"\n \n uploading files ..."
+	print new_bucket.files.upload('file.txt')"""

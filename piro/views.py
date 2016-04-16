@@ -443,3 +443,9 @@ def myfiles():
 	# userId = session['userId']
 	files=metaclient.returnfiles()
 	return render_template('myfiles.html', files=files)
+
+@app.route('/testroute', methods=['GET', 'POST'])
+def test():
+	# userId = session['userId']
+	test=metaclient.storefiles()
+	return render_template('myfiles.html', files=test)
