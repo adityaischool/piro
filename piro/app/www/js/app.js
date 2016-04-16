@@ -5,6 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 angular.module('todo', ['ionic'])
 
+
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
     if(window.cordova && window.cordova.plugins.Keyboard) {
@@ -21,21 +22,26 @@ angular.module('todo', ['ionic'])
       StatusBar.styleDefault();
     }
 
-    $("#image_link").click(function getImages(){
-      console.log(window, window.imagePicker);
-      window.imagePicker.getPictures(
-      	function(results) {
-      		for (var i = 0; i < results.length; i++) {
-      			console.log('Image URI: ' + results[i]);
-      		}
-      	}, function (error) {
-      		console.log('Error: ' + error);
-      	}, {
-      		maximumImagesCount: 10,
-      		width: 800
-      	}
-      );
+    function show_notification(title, text){
+
+      var now             = new Date().getTime(),
+      _5_sec_from_now = new Date(now + 5*1000);
+      cordova.plugins.notification.local.schedule({
+          id: 10,
+          at: _5_sec_from_now,
+          title: "Meeting in 15 minutes!",
+          text: "Jour fixe Produktionsbesprechung",
+      });
+
+      cordova.plugins.notification.local.on("schedule", function(notification) {
+        alert("scheduled: " + notification.id);
+      });
+
+      cordova.plugins.notification.local.on("trigger", function(notification) {
+        alert("triggered: " + notification.id);
+      });
     }
-    )
-  });
+
+    $("#noti_link").click(show_notification("Title", "Text"));
+  })
 })

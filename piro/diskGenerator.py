@@ -10,6 +10,7 @@ from apiCredentials import getAPICredentials
 from forecastioAPI import getPlaceDateWeatherSummary
 from timezoneUtil import utcFromDatetime, datetimeObjFromYYYYMMDD, localizedDatetimeObjFromYYYYMMDD, yyyymmddFromDatetimeObj, geocode, localizedDatetimeObjToReadableDate
 from spotifyAPI import getSpotifyPreviewAndImgUrls
+import random, string
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
@@ -141,8 +142,6 @@ def getDataPointsForUserAndDate(userId, diskDate):
 		else:
 			locationWeather['weather'] = None
 
-		
-
 	themeSongs = findThemeSongs(userId, diskDate)
 
 	newDisk = generateDisk(userId, diskDate, dataPointIds=dataPointIds, locations=locations, themeSongs=themeSongs, weather=weather)
@@ -151,6 +150,14 @@ def getDataPointsForUserAndDate(userId, diskDate):
 	pprint(newDisk)
 	return newDisk
 
+def getUserMemoryDisks(userId):
+	memoryDiskQueryResults = memoryDisks.find({'userId': userId})
+
+	return memoryDiskQueryResults
+
+def randomStringGenerator(size=12, chars=string.ascii_uppercase + string.digits):
+	return ''.join(random.choice(chars) for _ in range(size))
+
 # Create compact disks for a user given 'full' memory disks
 def generateCompactDisks(userId, memoryDisks):
 	compactMemoryDiskObjs = []
@@ -158,16 +165,30 @@ def generateCompactDisks(userId, memoryDisks):
 	for memoryDisk in memoryDisks:
 		diskId = memoryDisk['diskId']
 		diskDate = memoryDisk['date']
-		storjHash = memoryDisk['storjHash']
+		# storjHash = memoryDisk['storjHash']
+		storjHash = randomStringGenerator()
+		creationTimestamp = memoryDisk['creationTimestamp']
+		diskUserEngagement = memoryDisk['diskUserEngagement']
 		compactDisk = {
 			'userId': userId,
 			'diskId': diskId,
 			'diskDate': diskDate,
-			'storjHash': storjHash
+			'storjHash': storjHash,
+			'creationTimestamp': creationTimestamp,
+			'diskUserEngagement': diskUserEngagement
 		}
 		compactMemoryDiskObjs.append(compactDisk)
+
+	oldCount = compactMemoryDisks.find({'userId': userId}).count()
+	print
+	print '------- USER HAS', oldCount, 'COMPACT MEMORY DISKS ALREADY -------'
+	print '------- ATTEMPTING TO INSERT', len(compactMemoryDiskObjs), 'NEW COMPACT MEMORY DISKS'
 	# Insert the newly created compact disks into the compactDisks Mongo collection
 	compactMemoryDisks.insert(compactMemoryDiskObjs)
+	newCount = compactMemoryDisks.find({'userId': userId}).count()
+	print '------- SUCCESSFULLY INSERTED', (newCount - oldCount), 'NEW COMPACT MEMORY DISKS -------'
+	print '------- USER NOW HAS', newCount, 'COMPACT MEMORY DISKS -------'
+
 
 def generateDisk(userId, diskDate, dataPointIds, locations, themeSongs, weather):
 	creationTimestamp = utcFromDatetime(datetime.now())

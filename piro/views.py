@@ -1,8 +1,8 @@
 from flask import render_template, request, session, redirect, jsonify, Response, escape, url_for
 from piro import app, models, db
 import urllib2,fitoauth
-import math,metaclient
-import json,os,requests,os,datetime,time
+import math, metaclient
+import json, os, requests, datetime, time
 from flask import Response
 #from libraries.python-fitbit-master import foauth2
 from libraries import pythonfitbitmaster as pythonfitbitmaster
@@ -15,7 +15,7 @@ import md5, base64
 import lastfmAPI, dropboxAPI, instagramAPI, fitbitAPI, foursquareAPI, forecastioAPI
 from pprint import pprint
 from apiCredentials import setAPICredentials
-import diskGenerator
+import diskGenerator, jsonToText, getRandomDiskHashes
 import timezoneUtil
 
 @app.route('/')
@@ -151,6 +151,17 @@ def submitRegistration():
 			errors['emailError'] = True
 			return render_template('register.html', errors=errors)
 
+# An 'API' endpoint for randomly choosing <x> number of compact disks and returning their corresponding Storj hash locations
+@app.route('/api/v1/getRandomDisk', methods=['GET'])
+def getRandomDisk():
+	# userId = request.get.args('userId')
+	userId = session['userId']
+	storjHashes = getRandomDiskHashes.getRandomDiskHashes(userId)
+	response = {
+	'storjHashes': storjHashes
+	}
+	return jsonify(response), 200
+
 # USE THIS FOR TESTING DIFFERENT API FUNCTIONALITY
 @app.route('/test-api')
 def testAPIButton():
@@ -158,8 +169,15 @@ def testAPIButton():
 	# instagramAPI.resetMostRecentItemId()
 	# instagramAPI.getAllNewPosts()
 
-	foursquareAPI.resetMostRecentItemId()
-	foursquareAPI.getUserCheckinHistory()
+	# foursquareAPI.resetMostRecentItemId()
+	# foursquareAPI.getUserCheckinHistory()
+
+	# jsonToText.outputTxtFromJson()
+
+	# memoryDisks = diskGenerator.getUserMemoryDisks(userId)
+	# diskGenerator.generateCompactDisks(userId, memoryDisks)
+
+	return redirect('/api/v1/getRandomDisk')
 
 	# lastfmAPI.resetMostRecentPlaybackTimestamp()
 	# lastfmAPI.getUserHistoricalPlays()
