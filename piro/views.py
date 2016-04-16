@@ -17,6 +17,14 @@ from pprint import pprint
 from apiCredentials import setAPICredentials
 import diskGenerator
 import timezoneUtil
+import pymongo
+from random import randint
+
+# Instantiate Mongo client
+client = pymongo.MongoClient()
+# Instantiate Mongo compact memory disk db
+compactMemoryDiskDb = client.compactMemoryDiskDb
+compactMemoryDisks = compactMemoryDiskDb.compactMemoryDisks
 
 @app.route('/')
 @app.route('/index')
@@ -150,6 +158,43 @@ def submitRegistration():
 			errors['usernameError'] = True
 			errors['emailError'] = True
 			return render_template('register.html', errors=errors)
+
+@app.route('/api/v1/getRandomDisk', methods=['GET'])
+def getRandomDisk(userId):
+
+	numHashesToReturn = 5
+
+	randomIndices = []
+
+	cdResults = compactMemoryDisks.find({'userId': userId})
+
+	rangeUpper = cdResults.count() - 1
+
+	for i in range(numHashesToReturn):
+		index = generateRandomIndex(rangeUpper, randomIndices)
+		randomIndices.append(index)
+
+	storjHashes = []
+
+	count = 0
+
+	for result in cdResults:
+		if count in randomIndices:
+			storjHashes.append(result['storjHash'])
+			if len(storjHashes) == numHashesToReturn:
+				break
+		count += 1
+
+	return storjHashes
+
+def generateRandomIndex(rangeUpper, randomIndices):
+	index = randint(0, rangeUpper)
+	if index not in randomIndices:
+		return index
+	else:
+		return generateRandomIndex(randomIndices)
+
+
 
 # USE THIS FOR TESTING DIFFERENT API FUNCTIONALITY
 @app.route('/test-api')

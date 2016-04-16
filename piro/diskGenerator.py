@@ -19,6 +19,9 @@ dataPoints = dataPointDb.dataPoints
 # Instantiate Mongo memory disk db
 memoryDiskDb = client.memoryDiskDb
 memoryDisks = memoryDiskDb.memoryDisks
+# Instantiate Mongo compact memory disk db
+compactMemoryDiskDb = client.compactMemoryDiskDb
+compactMemoryDisks = compactMemoryDiskDb.compactMemoryDisks
 
 
 def generateHistoricalDisks(userId):
@@ -147,6 +150,35 @@ def getDataPointsForUserAndDate(userId, diskDate):
 	print '------- NEWLY GENERATED DISK -------'
 	pprint(newDisk)
 	return newDisk
+
+def generateAllCompactDisks():
+	userId = session['userId']
+	compactMemoryDiskObjs = []
+
+	compactMemoryDiskIds = []
+	compactMemoryDisksQueryResults = compactMemoryDisks.find({'userId': userId})
+	for compactMemoryDisk in compactMemoryDisksQueryResults:
+		compactMemoryDiskIds.append(compactMemoryDisk['diskId'])
+
+	memoryDisksQueryResults = memoryDisks.find({'userId': userId})
+	for memoryDisk in memoryDisksQueryResults:
+		diskId = memoryDisk['diskId']
+		if diskId not in compactMemoryDiskIds:
+			diskDate = memoryDisk['date']
+			storjHash = memoryDisk['storjHash']
+			compactDisk = generateCompactDisk(userId, diskId, diskDate, storjHash)
+			compactMemoryDiskObjs.append(compactDisk)
+	# Insert the newly created compact disks into the compactDisks Mongo collection
+	compactMemoryDisks.insert(compactMemoryDiskObjs)
+
+def generateCompactDisk(userId, diskId, diskDate, storjHash):
+	compactDisk = {
+		'userId': userId,
+		'diskId': diskId,
+		'diskDate': diskDate,
+		'storjHash': storjHash
+	}
+	return compactDisk
 
 
 def generateDisk(userId, diskDate, dataPointIds, locations, themeSongs, weather):
