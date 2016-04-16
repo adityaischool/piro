@@ -1,8 +1,8 @@
 from flask import render_template, request, session, redirect, jsonify, Response, escape, url_for
 from piro import app, models, db
 import urllib2,fitoauth
-import math,metaclient
-import json,os,requests,os,datetime,time
+import math, metaclient
+import json, os, requests, datetime, time
 from flask import Response
 #from libraries.python-fitbit-master import foauth2
 from libraries import pythonfitbitmaster as pythonfitbitmaster
@@ -15,7 +15,7 @@ import md5, base64
 import lastfmAPI, dropboxAPI, instagramAPI, fitbitAPI, foursquareAPI, forecastioAPI
 from pprint import pprint
 from apiCredentials import setAPICredentials
-import diskGenerator
+import diskGenerator, jsonToText, getRandomDiskHashes
 import timezoneUtil
 
 @app.route('/')
@@ -154,37 +154,13 @@ def submitRegistration():
 # An 'API' endpoint for randomly choosing <x> number of compact disks and returning their corresponding Storj hash locations
 @app.route('/api/v1/getRandomDisk', methods=['GET'])
 def getRandomDisk():
-	userId = request.get.args('userId')
-	numHashesToReturn = 5
-	randomIndices = []
-	storjHashes = []
-	# Hit compactMemoryDisks Mongo collection to get all of a user's compact disks
-	cdResults = compactMemoryDisks.find({'userId': userId})
-	# Set the upper range on random integer generation for selecting random disks
-	# Need to put in code for avoiding disks that have already been chosen recently (and those which have been 'hidden' by the user)
-	rangeUpper = cdResults.count() - 1
-	# Generate random indices and append to randomIndices list
-	for i in range(numHashesToReturn):
-		index = generateRandomIndex(rangeUpper, randomIndices)
-		randomIndices.append(index)
-	# Iterate through the user's compact disks and get the storjHashes for those with matching indices of the randomly generated indices
-	count = 0
-	for result in cdResults:
-		if count in randomIndices:
-			storjHashes.append(result['storjHash'])
-			if len(storjHashes) == numHashesToReturn:
-				break
-		count += 1
-	return storjHashes
-
-# Given an upper integer range and a list of indices, generate a new random int that is not alreayd in the given list of indices
-def generateRandomIndex(rangeUpper, randomIndices):
-	index = randint(0, rangeUpper)
-	if index not in randomIndices:
-		return index
-	else:
-		# Let's get recursive!
-		return generateRandomIndex(rangeUpper, randomIndices)
+	# userId = request.get.args('userId')
+	userId = session['userId']
+	storjHashes = getRandomDiskHashes.getRandomDiskHashes(userId)
+	response = {
+	'storjHashes': storjHashes
+	}
+	return jsonify(response), 200
 
 # USE THIS FOR TESTING DIFFERENT API FUNCTIONALITY
 @app.route('/test-api')
@@ -193,8 +169,15 @@ def testAPIButton():
 	# instagramAPI.resetMostRecentItemId()
 	# instagramAPI.getAllNewPosts()
 
-	foursquareAPI.resetMostRecentItemId()
-	foursquareAPI.getUserCheckinHistory()
+	# foursquareAPI.resetMostRecentItemId()
+	# foursquareAPI.getUserCheckinHistory()
+
+	# jsonToText.outputTxtFromJson()
+
+	# memoryDisks = diskGenerator.getUserMemoryDisks(userId)
+	# diskGenerator.generateCompactDisks(userId, memoryDisks)
+
+	return redirect('/api/v1/getRandomDisk')
 
 	# lastfmAPI.resetMostRecentPlaybackTimestamp()
 	# lastfmAPI.getUserHistoricalPlays()
