@@ -1,7 +1,7 @@
 from flask import render_template, request, session, redirect, jsonify, Response, escape, url_for
 from piro import app, models, db
 import urllib2,fitoauth
-import math,metaclient
+import math
 import json,os,requests,os,datetime,time
 from flask import Response
 #from libraries.python-fitbit-master import foauth2
@@ -437,9 +437,3 @@ def getdata():
 	print "-----------\n-----\n---activities-----\n\n\n"
 	print aut_cl.activities(date='2015-12-24')
 	return redirect('/dashboard')
-
-@app.route('/myfiles', methods=['GET', 'POST'])
-def myfiles():
-	# userId = session['userId']
-	files=metaclient.returnfiles()
-	return render_template('myfiles.html', files=files)

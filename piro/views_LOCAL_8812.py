@@ -1,7 +1,7 @@
 from flask import render_template, request, session, redirect, jsonify, Response, escape, url_for
 from piro import app, models, db
 import urllib2,fitoauth
-import math,metaclient
+import math
 import json,os,requests,os,datetime,time
 from flask import Response
 #from libraries.python-fitbit-master import foauth2
@@ -17,6 +17,7 @@ from pprint import pprint
 from apiCredentials import setAPICredentials
 import diskGenerator
 import timezoneUtil
+import metaclient
 
 @app.route('/')
 @app.route('/index')
