@@ -141,8 +141,6 @@ def getDataPointsForUserAndDate(userId, diskDate):
 		else:
 			locationWeather['weather'] = None
 
-		
-
 	themeSongs = findThemeSongs(userId, diskDate)
 
 	newDisk = generateDisk(userId, diskDate, dataPointIds=dataPointIds, locations=locations, themeSongs=themeSongs, weather=weather)
@@ -159,11 +157,15 @@ def generateCompactDisks(userId, memoryDisks):
 		diskId = memoryDisk['diskId']
 		diskDate = memoryDisk['date']
 		storjHash = memoryDisk['storjHash']
+		creationTimestamp = memoryDisk['creationTimestamp']
+		diskUerEngagement = memoryDisk['diskUserEngagement']
 		compactDisk = {
 			'userId': userId,
 			'diskId': diskId,
 			'diskDate': diskDate,
-			'storjHash': storjHash
+			'storjHash': storjHash,
+			'creationTimestamp': creationTimestamp,
+			'diskUserEngagement': diskUserEngagement
 		}
 		compactMemoryDiskObjs.append(compactDisk)
 	# Insert the newly created compact disks into the compactDisks Mongo collection
