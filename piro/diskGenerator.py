@@ -19,6 +19,9 @@ dataPoints = dataPointDb.dataPoints
 # Instantiate Mongo memory disk db
 memoryDiskDb = client.memoryDiskDb
 memoryDisks = memoryDiskDb.memoryDisks
+# Instantiate Mongo compact memory disk db
+compactMemoryDiskDb = client.compactMemoryDiskDb
+compactMemoryDisks = compactMemoryDiskDb.compactMemoryDisks
 
 
 def generateHistoricalDisks(userId):
@@ -148,6 +151,23 @@ def getDataPointsForUserAndDate(userId, diskDate):
 	pprint(newDisk)
 	return newDisk
 
+# Create compact disks for a user given 'full' memory disks
+def generateCompactDisks(userId, memoryDisks):
+	compactMemoryDiskObjs = []
+
+	for memoryDisk in memoryDisks:
+		diskId = memoryDisk['diskId']
+		diskDate = memoryDisk['date']
+		storjHash = memoryDisk['storjHash']
+		compactDisk = {
+			'userId': userId,
+			'diskId': diskId,
+			'diskDate': diskDate,
+			'storjHash': storjHash
+		}
+		compactMemoryDiskObjs.append(compactDisk)
+	# Insert the newly created compact disks into the compactDisks Mongo collection
+	compactMemoryDisks.insert(compactMemoryDiskObjs)
 
 def generateDisk(userId, diskDate, dataPointIds, locations, themeSongs, weather):
 	creationTimestamp = utcFromDatetime(datetime.now())
