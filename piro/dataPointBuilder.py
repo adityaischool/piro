@@ -42,6 +42,8 @@ def createDataPoint(userId, dataPointType, source, sourceData, timestamp, locati
 		localizedTimestamp = getLocalizedTimestamp(locale, timestamp)
 		actualDate = formattedDateGenerator(localizedTimestamp)
 		adjustedDate = adjustedDateGenerator(localizedTimestamp)
+	else:
+		return None
 	# Get weather 
 	# Generate dataPoint object
 	dataPoint = {

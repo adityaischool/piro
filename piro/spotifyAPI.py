@@ -23,11 +23,15 @@ def getSpotifyPreviewAndImgUrls(artist, track):
 		print '------- ERROR HITTING SPOTIFY API -------', e
 		print
 
-	decodedResponse = response.json()
-	# pprint(decodedResponse)
-
+	try:
+		decodedResponse = response.json()
+	except Exception as e:
+		print
+		print '------- ERROR DECODING SPOTIFY RESPONSE -------', e
+		print '------- RAW SPOTIFY RESPONSE -------', response
+		print
+	# Parse Spotify's decoded response
 	spotifyObj = {}
-
 	try:
 		previewUrl = decodedResponse['tracks']['items'][0]['preview_url']
 		spotifyObj['previewUrl'] = previewUrl

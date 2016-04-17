@@ -174,10 +174,14 @@ def testAPIButton():
 
 	# jsonToText.outputTxtFromJson()
 
-	# memoryDisks = diskGenerator.getUserMemoryDisks(userId)
-	# diskGenerator.generateCompactDisks(userId, memoryDisks)
+	memoryDisks = diskGenerator.getUserMemoryDisks(userId)
+	diskGenerator.generateCompactDisks(userId, memoryDisks)
 
-	return redirect('/api/v1/getRandomDisk')
+	# diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
+	
+	# diskGenerator.generateHistoricalDisks(userId)
+
+	# return redirect('/api/v1/getRandomDisk')
 
 	# lastfmAPI.resetMostRecentPlaybackTimestamp()
 	# lastfmAPI.getUserHistoricalPlays()
@@ -187,10 +191,6 @@ def testAPIButton():
 
 	# fitbitAPI.resetLastFitbitSyncDate()
 	# fitbitAPI.pollRecentFitbitData()
-
-	# diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
-	
-	# diskGenerator.generateHistoricalDisks(userId)
 
 	# timezoneUtil.reverseGeocodeBusiness(37.880265, -122.268560)
 

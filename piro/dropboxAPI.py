@@ -169,7 +169,7 @@ def checkIfPhoto(fileToCheck):
 		return False
 
 # Create & return a photo metadata object + the photo file path in Dropbox
-# so the photo can be downloaded and sent to pi box
+# so the photo can be downloaded and sent to Storj
 def processPhoto(photoFile):
 	userId = session['userId']
 	# Get photo Dropbox path
@@ -295,8 +295,10 @@ def updateFolderSync(userId, folder):
 
 # Download any new files from user's synced folders
 def pollUserSelectedFolders():
-	setDboxApiObj()
 	userId = session['userId']
+	setDboxApiObj()
+	# ######## REMOVE THIS LINE ONCE TESTING IS DONE!!!! #########
+	# dataPoints.remove({'$and': [{'userId': userId}, {'source': 'dropbox'}]})
 	# Get a user's selected folder paths to sync
 	folderPaths = getUserSelectedFolders(userId)
 	# Iterate through each 
@@ -386,8 +388,9 @@ def getFilesFromFolder(folderPath):
 				print
 		# Download each photo to temporary storage on web server
 		for i in range(len(photoData)):
-			downloadFile(photoData[i][0], photoData[i][1]['fileName'])
-			dataPointObjects.append(photoData[i][1])
+			if photoData[i][1] != None:
+				downloadFile(photoData[i][0], photoData[i][1]['fileName'], photoData[i][1]['adjustedDate'])
+				dataPointObjects.append(photoData[i][1])
 	else:
 		print
 		print '------- NO NEW FILES! -------'
@@ -409,9 +412,9 @@ def getFilesFromFolder(folderPath):
 	# TODO: SEND PHOTO META DATA TO STORJ - WILL MATCH TO PHOTO BY FILENAME
 
 # Downloads the file at the given path to a specified folder
-def downloadFile(filePath, fileName):
+def downloadFile(filePath, fileName, date):
 	userId = session['userId']
-	downloadDirectory = 'dropboxStaging/'+userId+'/'
+	downloadDirectory = 'fileStaging/'+userId+'/'+date+'/'
 	# Check if download directory exists; create if it does not exist
 	if not os.path.exists(downloadDirectory):
 		os.makedirs(downloadDirectory)
