@@ -172,10 +172,10 @@ def testAPIButton():
 	# foursquareAPI.resetMostRecentItemId()
 	# foursquareAPI.getUserCheckinHistory()
 
-	# jsonToText.outputTxtFromJson()
+	jsonToText.outputTxtFromJson()
 
-	memoryDisks = diskGenerator.getUserMemoryDisks(userId)
-	diskGenerator.generateCompactDisks(userId, memoryDisks)
+	# memoryDisks = diskGenerator.getUserMemoryDisks(userId)
+	# diskGenerator.generateCompactDisks(userId, memoryDisks)
 
 	# diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
 	
