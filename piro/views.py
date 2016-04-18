@@ -154,8 +154,19 @@ def submitRegistration():
 # An 'API' endpoint for randomly choosing <x> number of compact disks and returning their corresponding Storj hash locations
 @app.route('/api/v1/getRandomDisk', methods=['GET'])
 def getRandomDisk():
-	# userId = request.get.args('userId')
-	userId = session['userId']
+	key = request.args.get('key')
+
+	missingKeyError = {
+	'response': 'Error: Missing Key'
+	}
+
+	# Need to change this part to process an api key and return the user id
+	if key:
+		userId = key
+	else:
+		return jsonify(missingKeyError), 401
+
+	#userId = session['userId']
 	storjHashes = getRandomDiskHashes.getRandomDiskHashes(userId)
 	response = {
 	'storjHashes': storjHashes

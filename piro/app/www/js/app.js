@@ -43,6 +43,22 @@ ionicApp.run(function($ionicPlatform) {
       // });
     }
 
+    function get_random_hashes() {
+     var baseUrl = 'http://localhost:5000/api/v1';
+     var endpoint = '/getRandomDisk';
+     var constructedUrl = baseUrl + endpoint;
+
+
+      $.get(constructedUrl, {
+        
+        'key': 'b26ec1c3585573cf4914d8f16b7cc895'
+        // 'key': false
+      }, function success(response) {
+        console.log(response);
+      });
+    }
+
     $("#noti_link").on('click', show_notification);
+    $("#get-random-hashes").on('click', get_random_hashes);
   });
 });
