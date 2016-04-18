@@ -210,7 +210,7 @@ def processPhoto(photoFile):
 	photoMetadataObj['photoTimestamp'] = photoTimestamp
 	photoMetadataObj['photoLocation'] = photoLocation
 
-	dataPoint = createDataPoint(userId=userId, dataPointType='photo', source='dropbox', sourceData=photoMetadataObj, timestamp=photoTimestamp, location=photoLocation, fileName=photoName)
+	dataPoint = createDataPoint(userId=userId, dataPointType='photo', source='dropbox', sourceData=photoMetadataObj, timestamp=photoTimestamp, coords=photoLocation, fileName=photoName)
 
 	return [photoPath, dataPoint]
 

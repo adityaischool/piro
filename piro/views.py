@@ -183,14 +183,14 @@ def testAPIButton():
 	# foursquareAPI.resetMostRecentItemId()
 	# foursquareAPI.getUserCheckinHistory()
 
-	jsonToText.outputTxtFromJson()
+	# jsonToText.outputTxtFromJson()
 
-	# memoryDisks = diskGenerator.getUserMemoryDisks(userId)
-	# diskGenerator.generateCompactDisks(userId, memoryDisks)
+	diskGenerator.generateHistoricalDisks(userId)
+
+	memoryDisks = diskGenerator.getUserMemoryDisks(userId)
+	diskGenerator.generateCompactDisks(userId, memoryDisks)
 
 	# diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
-	
-	# diskGenerator.generateHistoricalDisks(userId)
 
 	# return redirect('/api/v1/getRandomDisk')
 
@@ -203,7 +203,7 @@ def testAPIButton():
 	# fitbitAPI.resetLastFitbitSyncDate()
 	# fitbitAPI.pollRecentFitbitData()
 
-	# timezoneUtil.reverseGeocodeBusiness(37.880265, -122.268560)
+	# timezoneUtil.reverseGeocodeBusiness(37.880208, -122.269341)
 
 	# setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
 	# setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
