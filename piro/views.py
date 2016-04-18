@@ -473,10 +473,10 @@ def myfiles():
 	files=metaclient.returnfiles()
 	return render_template('myfiles.html', files=files)
 
-@app.route('/testroute', methods=['GET', 'POST'])
+@app.route('/testupload', methods=['GET', 'POST'])
 def test():
 	# userId = session['userId']
-	test=metaclient.storefiles("1","testdata")
+	test=metaclient.storefiles("1","newtest")
 	return render_template('myfiles.html', files=test)
 @app.route('/viewfilesinbucket/<id1>', methods=['GET', 'POST'])
 def viewfilesinbucket(id1):
@@ -497,3 +497,9 @@ def delete(id1):
 	print "deleting",str(test)
 	#return render_template('myfiles.html', mylist=test)
 	return redirect('/admin')
+
+@app.route('/testbucket', methods=['GET', 'POST'])
+def testbucket():
+	# userId = session['userId']
+	test=metaclient.storefilesinbucket("570c997da2ae841d2ea9798e","newtest")
+	return render_template('myfiles.html', files=test)

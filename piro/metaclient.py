@@ -1,6 +1,6 @@
 import metadisk,hashlib,os,writefile
 # Get all registered public keys
-(private_key, public_key) = metadisk.generate_new_key_pair()
+#(private_key, public_key) = metadisk.generate_new_key_pair()
 print metadisk.authenticate(email='bigchobbit@gmail.com', password=hashlib.sha256(b'12345678').hexdigest())
 #key_list = metadisk.public_keys.all()
 #print key_list
@@ -72,7 +72,8 @@ def storefiles(bucketid,filepath):
 		with open(fileid) as file1:
 			print "upload started...",fileid
 			try:
-				hash1=new_bucket.files.upload(fileid)
+				#hash1=new_bucket.files.upload(fileid)
+				hash1=new_bucket.files.upload(fileid)#line 188 sdk.py
 			except Exception as e:
 				print "Exception for",fileid,e
 				writefile.writetologs("Exception for "+fileid+str(e)+"\n")
@@ -143,3 +144,98 @@ def getadmindata():
 	returnobj=returnbuckets()
 	return returnobj
 
+def storefilesinbucket(bucketid,filepath):
+	path1=os.path.dirname(__file__)
+	dirpath=os.path.join(path1,'static','staging',filepath)
+	filelist=os.listdir(dirpath)
+	print "file list",filelist
+	#bucketid=filepath
+	new_bucket=metadisk.buckets.get(bucketid)
+	#new_bucket = metadisk.buckets.create(name=bucketid)
+	print "bucket created"
+	print new_bucket,new_bucket.id
+	returnobject={}
+	returnobject['bucketid']=new_bucket.id
+	writefile.writetologs("Bucket created "+new_bucket.id)
+	returnobject['files']=[]
+	#create metadisk text file
+	for filename in filelist:
+		fileid=os.path.join(dirpath,filename)
+		#note the below line - you cant pass a file directly into api, pass the fpath instead
+		#laso note documentation for python api maybe messy
+		with open(fileid) as file1:
+			print "upload started...",fileid
+			try:
+				hash1=new_bucket.files.upload(fileid)
+			except Exception as e:
+				print "Exception for",fileid,e
+				writefile.writetologs("Exception for "+fileid+str(e)+"\n")
+			print "upload over",filename
+			#returnobject['files'].append(hash1)
+	listoffilesinbucket= new_bucket.files.all()
+	print type(listoffilesinbucket)
+	for fname in listoffilesinbucket:
+		if fname.name in filename:
+			returnobject['files'].append(fname.hash)
+	print returnobject
+	allhashes=""
+	#writeMetaDiskToFile(returnobject)
+	for filehash in returnobject['files']:
+		allhashes=allhashes+filehash+"\n"
+	fileid=os.path.join(dirpath,"metadisk.txt")
+		#create metadisk
+	with open(fileid,"a") as myfile:
+		myfile.write(allhashes)
+		#file auto closes-ready to upload
+	print "now uploading metadisk text file"
+	new_bucket.files.upload(fileid)
+	return returnobject
+
+
+def storefileswithtoken(bucketid,filepath):
+	path1=os.path.dirname(__file__)
+	dirpath=os.path.join(path1,'static','staging',filepath)
+	filelist=os.listdir(dirpath)
+	print "file list",filelist
+	#bucketid=filepath
+	new_bucket=metadisk.buckets.get(bucketid)
+	push_token = new_bucket.tokens.create(operation='PUSH')
+	#new_bucket = metadisk.buckets.create(name=bucketid)
+	print "bucket created"
+	print new_bucket,new_bucket.id
+	returnobject={}
+	returnobject['bucketid']=new_bucket.id
+	writefile.writetologs("Bucket created "+new_bucket.id)
+	returnobject['files']=[]
+	#create metadisk text file
+	for filename in filelist:
+		fileid=os.path.join(dirpath,filename)
+		#note the below line - you cant pass a file directly into api, pass the fpath instead
+		#laso note documentation for python api maybe messy
+		with open(fileid) as file1:
+			print "upload started...",fileid
+			try:
+				hash1=new_bucket.files.upload(fileid)
+			except Exception as e:
+				print "Exception for",fileid,e
+				writefile.writetologs("Exception for "+fileid+str(e)+"\n")
+			print "upload over",filename
+			#returnobject['files'].append(hash1)
+	listoffilesinbucket= new_bucket.files.all()
+	print type(listoffilesinbucket)
+	for fname in listoffilesinbucket:
+		if fname.name in filename:
+			returnobject['files'].append(fname.hash)
+	print returnobject
+	allhashes=""
+	#writeMetaDiskToFile(returnobject)
+	for filehash in returnobject['files']:
+		allhashes=allhashes+filehash+"\n"
+	fileid=os.path.join(dirpath,"metadisk.txt")
+		#create metadisk
+	with open(fileid,"a") as myfile:
+		myfile.write(allhashes)
+		#file auto closes-ready to upload
+	print "now uploading metadisk text file"
+	new_bucket.files.upload(fileid)
+	return returnobject
