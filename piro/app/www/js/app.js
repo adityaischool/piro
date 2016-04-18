@@ -3,10 +3,10 @@
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
-angular.module('todo', ['ionic'])
+var ionicApp = angular.module('todo', ['ionic', 'ngCordova']);
 
 
-.run(function($ionicPlatform) {
+ionicApp.run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
     if(window.cordova && window.cordova.plugins.Keyboard) {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
@@ -22,26 +22,43 @@ angular.module('todo', ['ionic'])
       StatusBar.styleDefault();
     }
 
-    function show_notification(title, text){
 
-      var now             = new Date().getTime(),
+    function show_notification(){
+
+      var now = new Date().getTime(),
       _5_sec_from_now = new Date(now + 5*1000);
       cordova.plugins.notification.local.schedule({
           id: 10,
           at: _5_sec_from_now,
-          title: "Meeting in 15 minutes!",
-          text: "Jour fixe Produktionsbesprechung",
+          title: "We have a new memory for you!",
+          text: "Take a look inside",
       });
 
-      cordova.plugins.notification.local.on("schedule", function(notification) {
-        alert("scheduled: " + notification.id);
-      });
+      // cordova.plugins.notification.local.on("schedule", function(notification) {
+      //   alert("scheduled: " + notification.id);
+      // });
 
-      cordova.plugins.notification.local.on("trigger", function(notification) {
-        alert("triggered: " + notification.id);
+      // cordova.plugins.notification.local.on("trigger", function(notification) {
+      //   alert("triggered: " + notification.id);
+      // });
+    }
+
+    function get_random_hashes() {
+     var baseUrl = 'http://localhost:5000/api/v1';
+     var endpoint = '/getRandomDisk';
+     var constructedUrl = baseUrl + endpoint;
+
+
+      $.get(constructedUrl, {
+        
+        'key': 'b26ec1c3585573cf4914d8f16b7cc895'
+        // 'key': false
+      }, function success(response) {
+        console.log(response);
       });
     }
 
-    $("#noti_link").click(show_notification("Title", "Text"));
-  })
-})
+    $("#noti_link").on('click', show_notification);
+    $("#get-random-hashes").on('click', get_random_hashes);
+  });
+});

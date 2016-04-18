@@ -5,12 +5,17 @@
     <title>Todo</title>
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
 
+    <meta http-equiv="Content-Security-Policy" content="default-src *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src  'self' 'unsafe-inline' *">
+
+
     <link href="lib/ionic/css/ionic.css" rel="stylesheet">
 
     <script src="lib/ionic/js/ionic.bundle.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="lib/lokijs/src/lokijs.js"></script> 
     <script src="js/app.js"></script>
     <!-- Needed for Cordova/PhoneGap (will be a 404 during development) -->
+    <script src="js/ng-cordova.min.js"></script>
     <script src="cordova.js"></script>
   </head>
   <body ng-app="todo">
@@ -22,7 +27,10 @@
         <h1 class="title">Todo</h1>
       </ion-header-bar>
       <ion-content>
-        <a id="noti_link"> Get notification </p>
+
+        <button class="btn btn-primary" id="noti_link">Get Notification</button><br><br>
+        <button class="btn btn-primary" id="get-random-hashes">Get Random Hashes</button>
+
       </ion-content>
     </ion-side-menu-content>
 

@@ -33,6 +33,9 @@ def generateHistoricalDisks(userId):
 	mongoQueryResults = memoryDisks.find({'userId': userId}).sort("date", pymongo.DESCENDING)
 	oldCount = mongoQueryResults.count()
 
+	# Create index for data point localizedTimestamp
+	dataPoints.create_index([("localizedTimestamp", pymongo.ASCENDING)])
+
 	# for disk in mongoQueryResults:
 	# 	if int(disk['date']) >= 20160401:
 	# 		print
@@ -55,10 +58,10 @@ def generateHistoricalDisks(userId):
 			# Increment newestDiskDate by 1 so we're not regenerating the newest disk on record)
 			newestDiskDate += timedelta(1)
 			break
-	# If user has no disks in Mongo (i.e., they're brand new to the product), use the oldest data point as a starting date
+	# If user has no disks in Mongo (i.e., they're brand new to the product), use the oldest photo data point as a starting date
 	elif mongoQueryResults.count() == 0:
 		print '------ NO MEMORY DISKS FOUND! ------'
-		mongoQueryResults = dataPoints.find({'userId': userId}).limit(1)
+		mongoQueryResults = dataPoints.find({'$and': [{'userId': userId}, {'dataPointType': 'photo'}]}).sort("localizedTimestamp", pymongo.ASCENDING)
 		for dataPoint in mongoQueryResults:
 			# Convert newestDiskDate to date object for easy incrementing & comparison
 			newestDiskDate = datetime.utcfromtimestamp(utcFromDatetime(datetimeObjFromYYYYMMDD(dataPoint['adjustedDate'])))
@@ -160,6 +163,8 @@ def randomStringGenerator(size=12, chars=string.ascii_uppercase + string.digits)
 
 # Create compact disks for a user given 'full' memory disks
 def generateCompactDisks(userId, memoryDisks):
+	# compactMemoryDisks.remove({})
+	
 	compactMemoryDiskObjs = []
 
 	for memoryDisk in memoryDisks:
@@ -260,7 +265,8 @@ def findThemeSongs(userId, diskDate):
 				themeSongs.append(tempSong)
 		playbackHistogram[key] = playcount + 1
 
-	processedSongs = []
+	processedSongIds = []
+	processedThemeSongs = []
 	for key in playbackHistogram:
 		print '----------- KEY:', key.encode('utf-8')
 		split = key.split('^$%&#^$%&#')
@@ -269,13 +275,21 @@ def findThemeSongs(userId, diskDate):
 		print '------ ARTIST:', artist
 		print '------ TRACK:', track
 		for song in themeSongs:
-			if song['dataPointId'] not in processedSongs and song['artist'] == artist and song['track'] == track:
+			if song['dataPointId'] not in processedSongIds and song['artist'] == artist and song['track'] == track:
 				song['playCount'] = playbackHistogram[key]
-				processedSongs.append(song['dataPointId'])
-	for song in themeSongs:
-		print
-		print song
-	themeSongsSorted = sorted(themeSongs, key=lambda k: k['playCount'], reverse=True)[:themeSongLimit]
+				processedSongIds.append(song['dataPointId'])
+		for song in themeSongs:
+			try:
+				song['playCount']
+				processedThemeSongs.append(song)
+			except Exception as e:
+				print
+				print '------- ERROR PROCESSING SONG PLAYCOUNT -------', e
+				continue
+	# for song in themeSongs:
+	# 	print
+	# 	print song
+	themeSongsSorted = sorted(processedThemeSongs, key=lambda k: k['playCount'], reverse=True)[:themeSongLimit]
 	return themeSongsSorted
 
 def findLocationMode(userId, diskDate):

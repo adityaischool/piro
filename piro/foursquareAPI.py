@@ -129,6 +129,8 @@ def getLastCheckinTimestamp():
 # Get a user's Foursquare checkin history since their last checkin
 def getUserCheckinHistory():
 	userId = session['userId']
+	# ######## REMOVE THIS LINE ONCE TESTING IS DONE!!!! #########
+	# dataPoints.remove({'$and': [{'userId': userId}, {'source': 'foursquare'}]})
 	afterTimestamp = getLastCheckinTimestamp()
 	offset = 0
 	limit = 250
@@ -156,10 +158,11 @@ def getUserCheckinHistory():
 		getMongoFolderContents()
 		# Download photos
 		for checkin in checkinHistoryData['data']:
+			date = checkin['adjustedDate']
 			if len(checkin['sourceData']['photos']) > 0:
 				for photo in checkin['sourceData']['photos']:
 					downloadUrl = getDownloadUrl(photo)
-					downloadFile(downloadUrl)
+					downloadFile(downloadUrl, date)
 		# dataPoints.remove({'source': 'foursquare'})
 		# Temporarily store dataPoints in Mongo
 		oldCount = dataPoints.count()
@@ -198,9 +201,9 @@ def getDownloadUrl(photo):
 	return constructedUrl
 
 # Downloads the file at the given URL to a specified folder
-def downloadFile(url):
+def downloadFile(url, date):
 	userId = session['userId']
-	downloadDirectory = 'foursquareStaging/'+userId+'/'
+	downloadDirectory = 'fileStaging/'+userId+'/'+date+'/'
 	# Check if download directory exists; create if it does not exist
 	if not os.path.exists(downloadDirectory):
 		os.makedirs(downloadDirectory)
@@ -392,7 +395,8 @@ def processCheckins(decodedResponse):
 
 		dataPoint = createDataPoint(userId=userId, dataPointType='checkin', source='foursquare', sourceData=tempCheckin, timestamp=timestamp, location=locationCoords, fileName=photoNames, businessName=venueName)
 		# Append tempCheckin objecct to postData 'posts' key-value list
-		checkinData['data'].append(dataPoint)
+		if dataPoint != None:
+			checkinData['data'].append(dataPoint)
 	# Return the postData object
 	return checkinData
 

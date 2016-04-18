@@ -160,6 +160,8 @@ def resetMostRecentItemId():
 # Get all of a user's posts that have not already been retrieved in the past
 def getAllNewPosts():
 	userId = session['userId']
+	# ######## REMOVE THIS LINE ONCE TESTING IS DONE!!!! #########
+	# dataPoints.remove({'$and': [{'userId': userId}, {'source': 'instagram'}]})
 	mostRecentItemId = 0
 	maxId = 0
 	highestMaxId = 0
@@ -224,7 +226,8 @@ def getAllNewPosts():
 	# Download each from the Instagram URL
 	for item in allPostData['data']:
 		url = item['sourceData']['url']
-		downloadFile(url)
+		date = item['adjustedDate']
+		downloadFile(url, date)
 
 	# Temporarily store dataPoints in Mongo
 	oldCount = dataPoints.count()
@@ -244,10 +247,10 @@ def getAllNewPosts():
 	# TODO: SEND PHOTO META DATA TO STORJ - WILL MATCH TO PHOTO BY FILENAME
 	return allPostData
 
-# Downloads the file at the given URL to a specified folder
-def downloadFile(url):
+# Downloads the file at the given URL to the staging folder
+def downloadFile(url, date):
 	userId = session['userId']
-	downloadDirectory = 'instagramStaging/'+userId+'/'
+	downloadDirectory = 'fileStaging/'+userId+'/'+date+'/'
 	# Check if download directory exists; create if it does not exist
 	if not os.path.exists(downloadDirectory):
 		os.makedirs(downloadDirectory)
@@ -390,7 +393,8 @@ def processRecentMediaResponse(decodedResponse):
 
 		dataPoint = createDataPoint(userId=userId, dataPointType='photo', source='instagram', sourceData=tempItem, timestamp=timestamp, location=location, fileName=fileName)
 		# Append tempItem object to postData 'posts' key-value list
-		postData['posts'].append(dataPoint)
+		if dataPoint != None:
+			postData['posts'].append(dataPoint)
 	# Sort the 'posts' key-value list by the 'itemId' key in descending order
 	sortedPosts = sorted(postData['posts'], key=lambda k: k['sourceData']['itemId'], reverse=True)
 	# Update the 'posts' key-value list in postData
