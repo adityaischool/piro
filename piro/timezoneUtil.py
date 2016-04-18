@@ -228,33 +228,44 @@ SECRET = getAPICredentials('foursquare')[1]
 API_VERSION = '20160324'
 MODE = 'swarm'
 
+from factual import Factual
+from factual.utils import circle
+
+
 # Use Foursquare's API to find the closest business name from a pair of coordinates
 # NOT CURRENTLY WORKING PROPERLY - FOURSQUARE NOT GIVING ACCURATE RESULTS - MAYBE TRY GOOGLE PLACES API?
 def reverseGeocodeBusiness(latitude, longitude):
-	baseUrl = 'https://api.foursquare.com/v2/'
-	endpoint = 'venues/search'
-	params = {
-	'll': str(latitude)+','+str(longitude),
-	'radius': '100',
-	'intent': 'browse',
-	'v': API_VERSION,
-	'm': MODE,
-	'client_id': API_KEY,
-	'client_secret': SECRET
-	}
 
-	constructedUrl = baseUrl + endpoint
+	factual = Factual('SOYYrhMgNoRKMDsKSVfANUMExX5cPeeuQ5fUD6Wd', '1w2bwTf2NwRa0ljzsUYROYyrCwEXiERUuYrIJbaC')
 
-	response = requests.get(constructedUrl, params=params)
-	decodedResponse = response.json()
-	print
-	print '------- FOURSQUARE RESPONSE -------'
-	#pprint(decodedResponse)
+	places = factual.table('places')
 
-	for venue in decodedResponse['response']['venues']:
-		print
-		print venue['name'].encode('utf-8')
-		print venue['location']['distance']
+	places = places.geo(circle(latitude, longitude, 15)).filters({'$and': [{'category_ids':{'$includes_any':[20, 107, 308, 372, 424, 430]}}, {'category_ids':{'$excludes_any':[439, 440]}}]}).data()
+	
+	if len(places) > 0:
+		sortedPlaces = sorted(places, key=lambda k: float(k['$distance']))
+
+		for place in sortedPlaces:
+			tempPlace = {}
+			
+			name = place['name']
+			city = place['locality']
+			region = place['region']
+
+			tempPlace['name'] = name
+			tempPlace['city'] = city
+			tempPlace['region'] = region
+
+			return tempPlace
+	else:
+		return None
+
+
+	# resolve from name and geo location
+	# data = factual.resolve('places', {'latitude':latitude,'longitude':longitude}).response()
+	# print '------- FACTUAL RESOPONSE DATA -------', data
+
+
 		
 
 

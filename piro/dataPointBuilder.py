@@ -1,11 +1,11 @@
-from timezoneUtil import getLocalizedTimestamp, formattedDateGenerator, adjustedDateGenerator, reverseGeocode, coordsToTimezoneLocale, utcFromDatetime
+from timezoneUtil import getLocalizedTimestamp, formattedDateGenerator, adjustedDateGenerator, reverseGeocodeBusiness, reverseGeocode, coordsToTimezoneLocale, utcFromDatetime
 from pprint import pprint
 from piro import models, db
 from models import User
 from datetime import datetime
 from forecastioAPI import getWeatherAtTime
 
-def createDataPoint(userId, dataPointType, source, sourceData, timestamp, location=None, fileName=None, businessName=None, businessPhotoUrl=None):
+def createDataPoint(userId, dataPointType, source, sourceData, timestamp, coords=None, fileName=None):
 	timestamp = timestamp
 	localizedTimestamp = None
 	locale = None
@@ -13,15 +13,18 @@ def createDataPoint(userId, dataPointType, source, sourceData, timestamp, locati
 	actualDate = None
 	adjustedDate = None
 	placeName = None
-	businessName = businessName
-	businessPhotoUrl = businessPhotoUrl
-	# Check if location is given. If so, localize the timestamp using the location
+	businessName = None
+	# Check if coords is given. If so, localize the timestamp using the coords
 	# Otherwise, localize the timestamp using the user's locale in User db table
-	if location is not None and location is not {}:
-		locale = coordsToTimezoneLocale(location['lat'], location['long'])
-		placeName = reverseGeocode(location['lat'], location['long'])
+	if coords is not None and coords is not {}:
+		locale = coordsToTimezoneLocale(coords['lat'], coords['long'])
+		businessName = reverseGeocodeBusiness(coords['lat'], coords['long'])
+		if businessName == None:
+			placeName = reverseGeocode(coords['lat'], coords['long'])
+		else:
+			placeName = businessName['city'] + ', ' + businessName['region']
 	else:
-		# Get user's locale from the User db table if data point has no location
+		# Get user's locale from the User db table if data point has no coords
 		try:
 			userIdQueryResults = User.query.filter_by(userid=userId).first()
 		except Exception as e:
@@ -56,10 +59,9 @@ def createDataPoint(userId, dataPointType, source, sourceData, timestamp, locati
 	'localizedTimestamp': localizedTimestamp,
 	'actualDate': actualDate,
 	'adjustedDate': adjustedDate,
-	'location': location,
+	'coords': coords,
 	'placeName': placeName,
 	'businessName': businessName,
-	'businessPhotoUrl': businessPhotoUrl,
 	'fileName': fileName
 	}
 	# print

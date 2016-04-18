@@ -8,11 +8,15 @@
     <meta http-equiv="Content-Security-Policy" content="default-src *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src  'self' 'unsafe-inline' *">
 
 
-    <link href="lib/ionic/css/ionic.css" rel="stylesheet">
+    <link rel="stylesheet" href="lib/ionic/css/ionic.css">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+    <link rel='stylesheet' href='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.css'/>
 
     <script src="lib/ionic/js/ionic.bundle.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-    <script src="lib/lokijs/src/lokijs.js"></script> 
+    <script src="lib/lokijs/src/lokijs.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="js/mapbox.js"></script>
     <script src="js/app.js"></script>
     <!-- Needed for Cordova/PhoneGap (will be a 404 during development) -->
     <script src="js/ng-cordova.min.js"></script>
@@ -31,6 +35,7 @@
         <button class="btn btn-primary" id="noti_link">Get Notification</button><br><br>
         <button class="btn btn-primary" id="get-random-hashes">Get Random Hashes</button>
 
+        <div id="map"></div>
       </ion-content>
     </ion-side-menu-content>
 

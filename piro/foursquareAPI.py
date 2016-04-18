@@ -393,7 +393,7 @@ def processCheckins(decodedResponse):
 		else:
 			locationCoords = location
 
-		dataPoint = createDataPoint(userId=userId, dataPointType='checkin', source='foursquare', sourceData=tempCheckin, timestamp=timestamp, location=locationCoords, fileName=photoNames, businessName=venueName)
+		dataPoint = createDataPoint(userId=userId, dataPointType='checkin', source='foursquare', sourceData=tempCheckin, timestamp=timestamp, coords=locationCoords, fileName=photoNames)
 		# Append tempCheckin objecct to postData 'posts' key-value list
 		if dataPoint != None:
 			checkinData['data'].append(dataPoint)
