@@ -391,7 +391,7 @@ def processRecentMediaResponse(decodedResponse):
 
 		fileName = url.split('/')[-1].split('?')[0]
 
-		dataPoint = createDataPoint(userId=userId, dataPointType='photo', source='instagram', sourceData=tempItem, timestamp=timestamp, location=location, fileName=fileName)
+		dataPoint = createDataPoint(userId=userId, dataPointType='photo', source='instagram', sourceData=tempItem, timestamp=timestamp, coords=location, fileName=fileName)
 		# Append tempItem object to postData 'posts' key-value list
 		if dataPoint != None:
 			postData['posts'].append(dataPoint)

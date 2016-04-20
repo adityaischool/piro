@@ -20,7 +20,7 @@ memoryDisks = memoryDiskDb.memoryDisks
 def outputTxtFromJson():
 	userId = session['userId']
 
-	# dates = ['20160204', '20160106', '20130331']
+	dates = ['20160204', '20160106', '20130331']
 
 	# queryResultDate = memoryDisks.find({'$and': [{'userId': userId}, {'date': '20160106'}]})
 

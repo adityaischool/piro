@@ -26,7 +26,7 @@ compactMemoryDisks = compactMemoryDiskDb.compactMemoryDisks
 
 
 def generateHistoricalDisks(userId):
-	# memoryDisks.remove({})
+	memoryDisks.remove({})
 
 	# Iterate through existing disks in Mongo to find the newest disk date as a starting point
 	newestDiskDate = ''
@@ -66,7 +66,8 @@ def generateHistoricalDisks(userId):
 			# Convert newestDiskDate to date object for easy incrementing & comparison
 			newestDiskDate = datetime.utcfromtimestamp(utcFromDatetime(datetimeObjFromYYYYMMDD(dataPoint['adjustedDate'])))
 			break
-	# Get stop date (1 week ago) as a string formatted as YYYYMMDD for comparison to disk dates as we create them
+
+	# Get stop date (1 day ago) as a string formatted as YYYYMMDD for comparison to disk dates as we create them
 	# This stop date is set to 7 days so we give the user a week before auto-generating disks
 	stopDate = datetime.today() - timedelta(1)
 	# Reset stopDate's hours, minutes, seconds, & microseconds to 0
@@ -107,6 +108,8 @@ def getDataPointsForUserAndDate(userId, diskDate):
 	locations = []
 	weather = []
 
+	processedLocationList = []
+
 	# If there is at least one photo for the given date, generate a memory disk using the datam otherwise return None
 	numPhotos = dataPoints.find({'$and': [{'userId': userId}, {'adjustedDate': diskDate}, {'dataPointType': 'photo'}]}).count()
 	print
@@ -117,11 +120,26 @@ def getDataPointsForUserAndDate(userId, diskDate):
 	mongoQueryResults = dataPoints.find({'$and': [{'userId': userId}, {'adjustedDate': diskDate}]}).sort("localizedTimestamp", pymongo.ASCENDING)
 
 	for result in mongoQueryResults:
+		tempLocation = {}
 		if result['dataPointType'] != 'song':
 			dataPointIds.append(result['dataPointId'])
-		# Add all unique locations to the disk's locations list
-		if result['placeName'] != None and result['placeName'] not in locations:
-			locations.append(result['placeName'])
+			# Add all unique locations to the disk's locations list
+			if result['placeName'] != None:
+				tempLocation['placeName'] = result['placeName']
+				tempLocation['coords'] = {
+						'lat': result['coords']['lat'],
+						'long': result['coords']['long']
+					}
+				tempLocation['businessName'] = None
+
+			if result['businessName'] != None:
+				tempLocation['businessName'] = result['businessName']
+
+			concatNames = str(result['placeName']) + str(result['businessName'])
+			print '========= CONCAT NAMES ==========', concatNames
+			if result['placeName'] != None and concatNames not in processedLocationList:
+				locations.append(tempLocation)
+				processedLocationList.append(concatNames)
 
 	# Get daily summary of weather for each location
 	for location in locations:
@@ -132,18 +150,18 @@ def getDataPointsForUserAndDate(userId, diskDate):
 		locationWeather = {
 		'location': location
 		}
-		locationCoords = geocode(location)
-		if locationCoords != None:
-			latitude = locationCoords['latitude']
-			longitude = locationCoords['longitude']
+		# locationCoords = geocode(location['placeName'])
+		# if locationCoords != None:
+		latitude = str(location['coords']['lat'])
+		longitude = str(location['coords']['long'])
 
-			rawTimestamp = utcFromDatetime(datetimeObjFromYYYYMMDD(diskDate))
-			# Convert rawTimestamp to string & remove decimal
-			timestamp = str(rawTimestamp).split('.')[0]
-			locationWeather['weather'] = getPlaceDateWeatherSummary(latitude, longitude, timestamp)
-			weather.append(locationWeather)
-		else:
-			locationWeather['weather'] = None
+		rawTimestamp = utcFromDatetime(datetimeObjFromYYYYMMDD(diskDate))
+		# Convert rawTimestamp to string & remove decimal
+		timestamp = str(rawTimestamp).split('.')[0]
+		locationWeather['weather'] = getPlaceDateWeatherSummary(latitude, longitude, timestamp)
+		weather.append(locationWeather)
+		# else:
+		# 	locationWeather['weather'] = None
 
 	themeSongs = findThemeSongs(userId, diskDate)
 
@@ -163,7 +181,7 @@ def randomStringGenerator(size=12, chars=string.ascii_uppercase + string.digits)
 
 # Create compact disks for a user given 'full' memory disks
 def generateCompactDisks(userId, memoryDisks):
-	# compactMemoryDisks.remove({})
+	compactMemoryDisks.remove({})
 	
 	compactMemoryDiskObjs = []
 
@@ -213,7 +231,7 @@ def generateDisk(userId, diskDate, dataPointIds, locations, themeSongs, weather)
 		'notes': [], # a user-defined list of notes/annotations
 		'displayStatus': 'on', # 'on', 'off', or 'snooze', defaults to 'on'
 		'snoozeDate': 0, # a future unix timestamp when this 'disk' becomes 'on' again
-		'locations': locations, # a list of all of the resolved locations from the data points in this 'disk'
+		'locations': locations, # a list of all of the resolved location names and lat/lngs from the data points in this 'disk'
 		'date': diskDate, # date string in format YYYYMMDD for this 'disk' - actually encompasses the period 4am-3:59am
 		'dataPointIds': dataPointIds, # a list of all data points, excluding songs, associated with this 'disk' - used for reference
 		'name': name, # the user-assigned name for this 'disk' - defaults to mode of locations

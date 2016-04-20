@@ -16,7 +16,7 @@ import lastfmAPI, dropboxAPI, instagramAPI, fitbitAPI, foursquareAPI, forecastio
 from pprint import pprint
 from apiCredentials import setAPICredentials
 import diskGenerator, jsonToText, getRandomDiskHashes
-import timezoneUtil
+import timezoneUtil,writefile
 
 @app.route('/')
 @app.route('/index')
@@ -183,14 +183,14 @@ def testAPIButton():
 	# foursquareAPI.resetMostRecentItemId()
 	# foursquareAPI.getUserCheckinHistory()
 
-	jsonToText.outputTxtFromJson()
+	# jsonToText.outputTxtFromJson()
 
-	# memoryDisks = diskGenerator.getUserMemoryDisks(userId)
-	# diskGenerator.generateCompactDisks(userId, memoryDisks)
+	diskGenerator.generateHistoricalDisks(userId)
+
+	memoryDisks = diskGenerator.getUserMemoryDisks(userId)
+	diskGenerator.generateCompactDisks(userId, memoryDisks)
 
 	# diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
-	
-	# diskGenerator.generateHistoricalDisks(userId)
 
 	# return redirect('/api/v1/getRandomDisk')
 
@@ -203,7 +203,7 @@ def testAPIButton():
 	# fitbitAPI.resetLastFitbitSyncDate()
 	# fitbitAPI.pollRecentFitbitData()
 
-	# timezoneUtil.reverseGeocodeBusiness(37.880265, -122.268560)
+	# timezoneUtil.reverseGeocodeBusiness(37.880208, -122.269341)
 
 	# setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
 	# setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
@@ -472,3 +472,34 @@ def myfiles():
 	# userId = session['userId']
 	files=metaclient.returnfiles()
 	return render_template('myfiles.html', files=files)
+
+@app.route('/testupload', methods=['GET', 'POST'])
+def test():
+	# userId = session['userId']
+	test=metaclient.storefiles("1","newtest")
+	return render_template('myfiles.html', files=test)
+@app.route('/viewfilesinbucket/<id1>', methods=['GET', 'POST'])
+def viewfilesinbucket(id1):
+	# userId = session['userId']
+	test=metaclient.viewfilesinbucket(id1)
+	return render_template('myfiles.html', files=test)
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin():
+	# userId = session['userId']
+	test=metaclient.getadmindata()
+	return render_template('admin.html', mylist=test)
+
+@app.route('/delete/<id1>', methods=['GET', 'POST'])
+def delete(id1):
+	# userId = session['userId']
+	test=metaclient.deletebucket(id1)
+	print "deleting",str(test)
+	#return render_template('myfiles.html', mylist=test)
+	return redirect('/admin')
+
+@app.route('/testbucket', methods=['GET', 'POST'])
+def testbucket():
+	# userId = session['userId']
+	test=metaclient.storefilesinbucket("570c997da2ae841d2ea9798e","newtest")
+	return render_template('myfiles.html', files=test)

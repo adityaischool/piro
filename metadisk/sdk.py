@@ -185,7 +185,7 @@ class FileManager:
         return [File(payload) for payload in files_json]
 
     def _upload(self, file):
-        api_client.upload_file(bucket_id=self.bucket_id, file=file)
+        api_client.upload_file_new(bucket_id=self.bucket_id, file=file)
 
     def upload(self, file):
 

@@ -39,7 +39,7 @@ class MetadiskApiError(Exception):
 class MetadiskClient:
 
     def __init__(self):
-        self.api_url = 'https://api.metadisk.org/'
+        self.api_url = 'https://api.storj.io'
         self.session = requests.Session()
         self.email = None
         self.password = None
@@ -203,6 +203,34 @@ class MetadiskClient:
 
         assert(response.status_code == 200)
 
+
+    def upload_file_new(self, bucket_id, file):
+
+        def get_size(file_like_object):
+            old_position = file_like_object.tell()
+            file_like_object.seek(0, os.SEEK_END)
+            size = file_like_object.tell()
+            file_like_object.seek(old_position, os.SEEK_SET)
+            return size
+
+        file_size = get_size(file)
+        print "inside upload new"
+        push_token = self.create_token(bucket_id, operation='PUSH')
+
+        response = self._request(
+            method='PUT',
+            path='/buckets/' + bucket_id + '/files',
+            files={
+                'data': file,
+                #'formData':file
+            },
+            headers={
+                'x-token': push_token['token'],
+                'x-filesize': str(file_size),
+            }
+        )
+
+        assert(response.status_code == 200)
     def get_files(self, bucket_id):
         response = self._request(method='GET', path='/buckets/' + bucket_id + '/files')
         return response.json()
