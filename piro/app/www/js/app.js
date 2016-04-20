@@ -43,6 +43,7 @@ ionicApp.run(function($ionicPlatform) {
       // });
     }
 
+    // This function returns the storj hashes of 5 random compact discs
     function get_random_hashes() {
      var baseUrl = 'http://localhost:5000/api/v1';
      var endpoint = '/getRandomDisk';
@@ -50,12 +51,34 @@ ionicApp.run(function($ionicPlatform) {
 
 
       $.get(constructedUrl, {
-        
+
         'key': 'b26ec1c3585573cf4914d8f16b7cc895'
         // 'key': false
       }, function success(response) {
         console.log(response);
       });
+    }
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+
+      var uri = encodeURI("https://s-media-cache-ak0.pinimg.com/236x/c5/3f/4e/c53f4e6cc8875b2e8ef13cd415ce7ad3.jpg");
+      var filename = uri.split("/").pop();
+      var filePath = cordova.file.dataDirectory + filename;
+
+      // Displays a locally stored image on the UI
+      function displayAsset(filePath){
+        $("#image").attr('src', filePath );
+      }
+
+      // checks if the file exists, If yes displays directly else downloads and displays it
+      function download_and_display_picture(){
+        window.resolveLocalFileSystemURL(filePath,
+                                        function(){ displayAsset(filePath)},
+                                        function(){ local_storage.downloadFromRemote(uri, filePath)});
+      }
+
+      $("#show_picture").on('click', download_and_display_picture);
     }
 
     $("#noti_link").on('click', show_notification);
