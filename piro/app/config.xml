@@ -8,13 +8,12 @@
       Your Name Here
     </author>
   <allow-navigation href="*"/>
-  <allow-navigation href="file://*/*" />
+  <allow-navigation href="file://*/*"/>
   <content src="index.html"/>
   <access origin="*"/>
-  <preference name="AndroidPersistentFileLocation" value="Internal" />
-  <preference name="iosPersistentFileLocation" value="Library" />
-  <preference name="BackupWebStorage" value="none" />
-
+  <preference name="AndroidPersistentFileLocation" value="Internal"/>
+  <preference name="iosPersistentFileLocation" value="Library"/>
+  <preference name="BackupWebStorage" value="none"/>
   <preference name="webviewbounce" value="false"/>
   <preference name="UIWebViewBounce" value="false"/>
   <preference name="DisallowOverscroll" value="true"/>
