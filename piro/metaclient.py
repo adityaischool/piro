@@ -111,6 +111,7 @@ def storefiles(bucketid,filepath):
 def viewfilesinbucket(bucketid):
 	new_bucket=metadisk.buckets.get(bucketid)
 	listoffilesinbucket= new_bucket.files.all()
+	print "list",listoffilesinbucket
 	returnobject={}
 	returnobject['files']=[]
 	for fname in listoffilesinbucket:

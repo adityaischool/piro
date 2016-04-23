@@ -8,7 +8,7 @@
     <meta name="author" content="">
     <link rel="icon" href="/static/img/favicon.ico">
 
-    <title>Admin page</title>
+    <title>Bucket page</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/static/css/bootstrap.css" rel="stylesheet">
@@ -22,12 +22,10 @@
   </head>
 
   <body>
-{% for x in mylist %}
+{% for x in mylist['files'] %}
           <ul>
-            <li class="active">Bucket{{x['bucketid']}}</a></li>
-            <li><a href="delete/{{x['bucketid']}}">Delete</a></li>
-            <li>Number of files {{x.files|length}}</li>
-            <li><a href="viewfilesinbucket/{{x['bucketid']}}">View</a></li>
+            <li class="active">File Name is - {{x}}</a></li>
+            
                       </ul>
 {% endfor %}
     </body>

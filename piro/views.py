@@ -482,7 +482,7 @@ def test():
 def viewfilesinbucket(id1):
 	# userId = session['userId']
 	test=metaclient.viewfilesinbucket(id1)
-	return render_template('myfiles.html', files=test)
+	return render_template('viewbucket.html', mylist=test)
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
