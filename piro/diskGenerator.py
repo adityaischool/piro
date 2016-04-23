@@ -26,7 +26,7 @@ compactMemoryDisks = compactMemoryDiskDb.compactMemoryDisks
 
 
 def generateHistoricalDisks(userId):
-	memoryDisks.remove({})
+	# memoryDisks.remove({})
 
 	# Iterate through existing disks in Mongo to find the newest disk date as a starting point
 	newestDiskDate = ''
@@ -181,7 +181,7 @@ def randomStringGenerator(size=12, chars=string.ascii_uppercase + string.digits)
 
 # Create compact disks for a user given 'full' memory disks
 def generateCompactDisks(userId, memoryDisks):
-	compactMemoryDisks.remove({})
+	# compactMemoryDisks.remove({})
 	
 	compactMemoryDiskObjs = []
 
@@ -209,6 +209,7 @@ def generateCompactDisks(userId, memoryDisks):
 	# Insert the newly created compact disks into the compactDisks Mongo collection
 	compactMemoryDisks.insert(compactMemoryDiskObjs)
 	newCount = compactMemoryDisks.find({'userId': userId}).count()
+	print 'user id---------', userId
 	print '------- SUCCESSFULLY INSERTED', (newCount - oldCount), 'NEW COMPACT MEMORY DISKS -------'
 	print '------- USER NOW HAS', newCount, 'COMPACT MEMORY DISKS -------'
 

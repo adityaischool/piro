@@ -250,7 +250,7 @@ def getAllNewPosts():
 # Downloads the file at the given URL to the staging folder
 def downloadFile(url, date):
 	userId = session['userId']
-	downloadDirectory = 'fileStaging/'+userId+'/'+date+'/'
+	downloadDirectory = 'static/staging/'+userId+'/'+date+'/'
 	# Check if download directory exists; create if it does not exist
 	if not os.path.exists(downloadDirectory):
 		os.makedirs(downloadDirectory)

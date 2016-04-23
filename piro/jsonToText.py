@@ -28,10 +28,20 @@ def outputTxtFromJson():
 	# 	pprint(result)
 
 	# return
+	downloadDirectory = ''
 
 	queryResults = memoryDisks.find({'userId': userId})
 
 	for result in queryResults:
 		if result['date'] in dates:
-			with open(result['date']+'.txt', 'w') as outfile:
+			downloadDirectory = 'static/staging/'+userId+'/'+result['date']+'/'
+
+			# Check if download directory exists; create if it does not exist
+			if not os.path.exists(downloadDirectory):
+				os.makedirs(downloadDirectory)
+
+			print '======== download directory:', downloadDirectory
+			print 'filename =============', result['date']
+
+			with open(downloadDirectory+result['date']+'.txt', 'w') as outfile:
    				json.dump(dumps(result), outfile)

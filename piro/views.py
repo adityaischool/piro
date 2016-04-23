@@ -17,6 +17,7 @@ from pprint import pprint
 from apiCredentials import setAPICredentials
 import diskGenerator, jsonToText, getRandomDiskHashes
 import timezoneUtil,writefile
+import storjMongo
 
 @app.route('/')
 @app.route('/index')
@@ -81,6 +82,7 @@ def generateUserId(userName, email):
 	m.update(userName+email+random)
 	print "------- HASHED USER ID -------", m.hexdigest()
 	return m.hexdigest()
+
 
 # Logout handler
 @app.route('/logout')
@@ -154,24 +156,61 @@ def submitRegistration():
 # An 'API' endpoint for randomly choosing <x> number of compact disks and returning their corresponding Storj hash locations
 @app.route('/api/v1/getRandomDisk', methods=['GET'])
 def getRandomDisk():
-	key = request.args.get('key')
+	userId = session['userId']
+	# key = request.args.get('key')
 
-	missingKeyError = {
-	'response': 'Error: Missing Key'
+	# missingKeyError = {
+	# 'response': 'Error: Missing Key'
+	# }
+
+	# # Need to change this part to process an api key and return the user id
+	# if key:
+	# 	userId = key
+	# else:
+	# 	return jsonify(missingKeyError), 401
+
+	returnResponse = {
+	'storjHashes': []
 	}
 
-	# Need to change this part to process an api key and return the user id
-	if key:
-		userId = key
-	else:
-		return jsonify(missingKeyError), 401
+	numDates = 5
 
-	#userId = session['userId']
-	storjHashes = getRandomDiskHashes.getRandomDiskHashes(userId)
-	response = {
-	'storjHashes': storjHashes
+	dates = getRandomDates(userId, numDates)
+
+	for date in dates:
+		storjHash = storjMongo.getDateHashes(userId, date)
+		returnResponse['storjHashes'].append(storjHash)
+
+	return jsonify(returnResponse), 200
+
+
+def uploadToStorj(userId, date):
+	# Remove htis once we're calling this function programatically for each user once all of their API data is fetched for the day
+	userId = session['userId']
+
+	endpoint = str(userId) + '-' + date
+
+	uploadResponse = requests.get('/uploadapi/'+endpoint)
+
+	bucketHash = uploadResponse['buckethash']
+	fileHash = uploadResponse['filehash']
+
+	storjHashObj = {
+	'userId': userId,
+	'date': date,
+	'storjBucketHash': bucketHash,
+	'storjFileHash': fileHash
 	}
-	return jsonify(response), 200
+
+	response = storjMongo.writeToStorj(storjHashObj)
+
+	print response2
+
+def getRandomDates(userId, numDates):
+	randomDates = getRandomDiskHashes.getRandomDate(userId, numDates)
+	print 'RANDOMLY GENERATED DATES', randomDates
+	return randomDates[0]
+
 
 # USE THIS FOR TESTING DIFFERENT API FUNCTIONALITY
 @app.route('/test-api')
@@ -183,12 +222,12 @@ def testAPIButton():
 	# foursquareAPI.resetMostRecentItemId()
 	# foursquareAPI.getUserCheckinHistory()
 
-	# jsonToText.outputTxtFromJson()
+	jsonToText.outputTxtFromJson()
 
-	diskGenerator.generateHistoricalDisks(userId)
+	# diskGenerator.generateHistoricalDisks(userId)
 
-	memoryDisks = diskGenerator.getUserMemoryDisks(userId)
-	diskGenerator.generateCompactDisks(userId, memoryDisks)
+	# memoryDisks = diskGenerator.getUserMemoryDisks(userId)
+	# diskGenerator.generateCompactDisks(userId, memoryDisks)
 
 	# diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
 

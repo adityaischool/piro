@@ -59,3 +59,37 @@ def getRandomDiskHashes(userId):
 		print storjHash
 	return storjHashes
 
+def getRandomDate(userId, numDates):
+	print 'user id==========', userId
+	numDatesToReturn = numDates
+	randomIndices = []
+	dates = []
+	# Hit compactMemoryDisks Mongo collection to get all of a user's compact disks
+	cdResults = compactMemoryDisks.find({'userId': userId})
+	print "lenght of resutls=======", cdResults.count()
+
+	# for result in cdResults:
+	# 	print '------- CD RESULT:', result
+	# Set the upper range on random integer generation for selecting random disks
+	# Need to put in code for avoiding disks that have already been chosen recently (and those which have been 'hidden' by the user)
+	rangeUpper = cdResults.count() - 1
+	# Generate random indices and append to randomIndices list
+	for i in range(numDatesToReturn):
+		index = generateRandomIndex(rangeUpper, randomIndices)
+		randomIndices.append(index)
+	# Iterate through the user's compact disks and get the dates for those with matching indices of the randomly generated indices
+	count = 0
+	for result in cdResults:
+		if count in randomIndices:
+			dates.append(result['diskDate'])
+			if len(dates) == numDates:
+				break
+		count += 1
+	print '------- RANDOMLY SELETECTED DATES TO BE RETURNED -------'
+	for date in dates:
+		print date
+	return dates
+
+
+
+
