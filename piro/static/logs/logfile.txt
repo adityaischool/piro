@@ -30,4 +30,33 @@ Bucket created 5715575e54b452990bec731aException for C:\Users\Adi\Documents\berk
 Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\newtest\metadisk.txt502 Server Error: Bad Gateway for url: https://api.storj.io/buckets/5715575e54b452990bec731a/files
 Bucket created 57155d9c54b452990bec733dException for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\newtest\great-design.pngFile does not match the declared size
 Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\newtest\metadisk.txtFile does not match the declared size
-Bucket created 57155dcc54b452990bec7359Bucket created 57155fae54b452990bec737b
+Bucket created 57155dcc54b452990bec7359Bucket created 57155fae54b452990bec737bBucket created 571af271ba41d7d52055b2b8Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\2016-01-06 17.15.12.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\2016-01-06 17.32.08.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\2016-01-06 17.39.11.jpg'unicode' object has no attribute 'tell'
+Bucket created 571af2cdba41d7d52055b2b9Bucket created 571af495ba41d7d52055b2d3Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\a.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\b.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\c.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\metadisk.txt'unicode' object has no attribute 'tell'
+Bucket created 571af540ba41d7d52055b2daException for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\a.jpgFailed to load the shard contracts
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\b.jpgFile does not match the declared size
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\c.jpgFile does not match the declared size
+Bucket created 571af5d3ba41d7d52055b2efException for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\a.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\b.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\c.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\metadisk.txt'unicode' object has no attribute 'tell'
+Bucket created 571af5feba41d7d52055b2f0Bucket created 571af7a4ba41d7d52055b306Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\a.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\b.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\c.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\metadisk.txt'unicode' object has no attribute 'tell'
+Bucket created 571afad8ba41d7d52055b309Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\a.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\b.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\c.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\metadisk.txt'unicode' object has no attribute 'tell'
+Bucket created 571afd27ba41d7d52055b312Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\a.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\b.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\c.jpg'unicode' object has no attribute 'tell'
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\metadisk.txt'unicode' object has no attribute 'tell'
+Bucket created 571afd59ba41d7d52055b313Bucket created 571afdf8ba41d7d52055b327Bucket created 571afeacba41d7d52055b341Bucket created 571affd2ba41d7d52055b362Bucket created 571b0057ba41d7d52055b37cBucket created 571b0089ba41d7d52055b394Bucket created 571b02dbba41d7d52055b3aeBucket created 571b02e5ba41d7d52055b3bcBucket created 571b0360ba41d7d52055b3d0Bucket created 571b038bba41d7d52055b3e4Bucket created 571b0404ba41d7d52055b3f3Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\metadisk.txt502 Server Error: Bad Gateway for url: https://api.storj.io/buckets/571b0404ba41d7d52055b3f3/files
+Bucket created 571b046a0c8d702133ff1c17Bucket created 571b04cc0c8d702133ff1c19Bucket created 571b04e80c8d702133ff1c1bBucket created 571b05290c8d702133ff1c1eException for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\newtest\great-design.png502 Server Error: Bad Gateway for url: https://api.storj.io/buckets/571b05290c8d702133ff1c1e/files
+Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\newtest\metadisk.txt502 Server Error: Bad Gateway for url: https://api.storj.io/buckets/571b05290c8d702133ff1c1e/files
+Bucket created 571b07290c8d702133ff1c22

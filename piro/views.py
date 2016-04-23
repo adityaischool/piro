@@ -503,3 +503,11 @@ def testbucket():
 	# userId = session['userId']
 	test=metaclient.storefilesinbucket("570c997da2ae841d2ea9798e","newtest")
 	return render_template('myfiles.html', files=test)
+
+@app.route('/uploadapi/<userfolder>', methods=['GET', 'POST'])
+def uploadapi(userfolder):
+	uid=userfolder.split('-')[0]
+	date=userfolder.split('-')[1]
+	returnobj=metaclient.storefilesapi(uid,date)
+	print "api returns object", returnobj
+	return returnobj
