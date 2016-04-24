@@ -551,7 +551,7 @@ def uploadapi(userfolder):
 	date=userfolder.split('-')[1]
 	returnobj=metaclient.storefilesapi(uid,date)
 	print "api returns object", returnobj
-	return returnobj
+	return render_template('myfiles.html', files=str(returnobj))
 
 @app.route('/manageuploads', methods=['GET', 'POST'])
 def manageuploads():
@@ -559,4 +559,4 @@ def manageuploads():
 	#static/staging/alexjones/20191904
 	returnobj=metaclient.liststagingfiles()
 	print "api returns object", returnobj
-	return returnobj
+	return render_template('uploads.html', mylist=returnobj)

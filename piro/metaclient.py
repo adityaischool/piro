@@ -324,6 +324,26 @@ def liststagingfiles():
 	# #path2=filepath
 	dirpath=os.path.join(path1,'static','staging')
 	# filelist=os.listdir(dirpath)
+	retobj=[]
 	for curdir,folders,files in os.walk(dirpath):
-		print curdir,files
-	return "true"
+		print "iterating ",curdir,"\n",folders
+		if len(folders)==0:
+			#implies this is a end directory
+			#means curdir is "*\staging\uname\date"
+			#whatcomesafterlast"static\staging" and then split by \
+			print "inside loop now"
+			print "curdir",curdir,"pathsep",os.sep
+			ind=curdir.index("static"+os.sep+"staging")
+			indrest=len(curdir)-ind
+			print "ind",ind,"indrest",indrest,"curdir len",len(curdir)
+			print 15+ind,len(curdir)-15-ind
+			#restdir=curdir[15+ind:len(curdir)-15-ind]
+			restdir=curdir[-(len(curdir)-15-ind):]
+			print "restdir",restdir
+			uid=restdir.split(os.sep)[0]
+			date=restdir.split(os.sep)[1]
+			print "numfiles-",len(files)
+			tempdict={'user':uid,'date':date,'numfiles':len(files)}
+			retobj.append(tempdict)
+			print "added",tempdict
+	return retobj

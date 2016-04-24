@@ -1,0 +1,11 @@
+<body>
+{% for x in mylist %}
+          <ul>
+            <li class="active">User - {{x['user']}}</li>
+            <li class="active">Date - {{x['date']}}</li>
+            <li>Number of files {{x['numfiles']}}</li>
+            <li><a href="uploadapi/{{x['user']}}-{{x['date']}}">Push to Storj</a></li>
+                      </ul>
+{% endfor %}
+
+</body>
