@@ -130,10 +130,12 @@ def submitRegistration():
 			user = User(userId, username, email, onboarded, timezone, '0000000000000000')
 			# Add and commit newly created User db record
 			try:
+				print "trying to add user"
 				db.session.add(user)
 				db.session.commit()
+				print "added user"
 			except Exception as e:
-				print e
+				print "caught exception",e
 			# Set session values
 			session['username'] = username
 			session['userId'] = userId
