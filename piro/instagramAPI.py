@@ -257,7 +257,7 @@ def downloadFile(url, date):
 	# Check if download directory exists; create if it does not exist
 	if not os.path.exists(downloadDirectory):
 		os.makedirs(downloadDirectory)
-	fileName = url.split('/')[-1].split('?')[0]
+	fileName = url.split(os.sep)[-1].split('?')[0]
 	# Concatenate downloadDirectory + fileName
 	pathPlusFileName = downloadDirectory + fileName
 	# Download file at from specified Instagram URL to specified local path
