@@ -216,12 +216,14 @@ def getRandomDates(userId, numDates):
 # USE THIS FOR TESTING DIFFERENT API FUNCTIONALITY
 @app.route('/test-api')
 def testAPIButton():
-	pass
+	return redirect('service_authorization')
 
 # THIS WILL GET ALL OF THE LOGGED-IN USER'S UNSYNCED DATA FROM EACH SERVICE
 @app.route('/get-all')
 def getAll():
 	userId = session['userId']
+
+	
 	setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
 	setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
 	setAPICredentials('instagram', '710b8ed34bce4cc7894e7991459a4ebb', '23276b9f88c94e30b880a072041aecb3')
