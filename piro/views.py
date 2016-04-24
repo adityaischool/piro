@@ -185,13 +185,14 @@ def getRandomDisk():
 
 
 def uploadToStorj(userId, date):
-	# Remove htis once we're calling this function programatically for each user once all of their API data is fetched for the day
+	# Remove this once we're calling this function programatically for each user once all of their API data is fetched for the day
 	userId = session['userId']
 
 	endpoint = str(userId) + '-' + date
-
-	uploadResponse = requests.get('/uploadapi/'+endpoint)
-
+	print "endpoint",endpoint
+	#print "hhuuulllasd",url_for('uploadapi')
+	#uploadResponse = requests.get(url_for('uploadapi',userfolder=endpoint))
+	uploadResponse=uploadapi(endpoint)
 	bucketHash = uploadResponse['buckethash']
 	fileHash = uploadResponse['filehash']
 
@@ -216,41 +217,44 @@ def getRandomDates(userId, numDates):
 @app.route('/test-api')
 def testAPIButton():
 	userId = session['userId']
-	# instagramAPI.resetMostRecentItemId()
-	# instagramAPI.getAllNewPosts()
+	setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
+	setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
+	setAPICredentials('instagram', '710b8ed34bce4cc7894e7991459a4ebb', '23276b9f88c94e30b880a072041aecb3')
+	setAPICredentials('lastfm', '070094824815e5b8dc5fcfbc5a2f723f', '3afa4374733f63f58bd6e5b5962cbbb6')
+	setAPICredentials('dropbox', 'f2ysiyl8imtvz0g', '6pk00rjwh5s24cr')
+	setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
+	setAPICredentials('spotify', '3a1f5d8baa2149b48d9a8128bcc48c05', 'ce6cc2bd81324433984c3f7ab55155b0')
 
-	# foursquareAPI.resetMostRecentItemId()
-	# foursquareAPI.getUserCheckinHistory()
+	instagramAPI.resetMostRecentItemId()
+	instagramAPI.getAllNewPosts()
+
+	foursquareAPI.resetMostRecentItemId()
+	foursquareAPI.getUserCheckinHistory()
 
 	jsonToText.outputTxtFromJson()
 
-	# diskGenerator.generateHistoricalDisks(userId)
-
-	# memoryDisks = diskGenerator.getUserMemoryDisks(userId)
-	# diskGenerator.generateCompactDisks(userId, memoryDisks)
+	# uploadToStorj(userId, '20160204')
 
 	# diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
 
 	# return redirect('/api/v1/getRandomDisk')
 
-	# lastfmAPI.resetMostRecentPlaybackTimestamp()
-	# lastfmAPI.getUserHistoricalPlays()
+	lastfmAPI.resetMostRecentPlaybackTimestamp()
+	lastfmAPI.getUserHistoricalPlays()
 
-	# dropboxAPI.resetUserFolderCursors()
-	# dropboxAPI.pollUserSelectedFolders()
+	dropboxAPI.resetUserFolderCursors()
+	dropboxAPI.pollUserSelectedFolders()
 
 	# fitbitAPI.resetLastFitbitSyncDate()
 	# fitbitAPI.pollRecentFitbitData()
 
 	# timezoneUtil.reverseGeocodeBusiness(37.880208, -122.269341)
 
-	# setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
-	# setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
-	# setAPICredentials('instagram', '710b8ed34bce4cc7894e7991459a4ebb', '23276b9f88c94e30b880a072041aecb3')
-	# setAPICredentials('lastfm', '070094824815e5b8dc5fcfbc5a2f723f', '3afa4374733f63f58bd6e5b5962cbbb6')
-	# setAPICredentials('dropbox', 'f2ysiyl8imtvz0g', '6pk00rjwh5s24cr')
-	# setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
-	# setAPICredentials('spotify', '3a1f5d8baa2149b48d9a8128bcc48c05', 'ce6cc2bd81324433984c3f7ab55155b0')
+
+	diskGenerator.generateHistoricalDisks(userId)
+
+	memoryDisks = diskGenerator.getUserMemoryDisks(userId)
+	diskGenerator.generateCompactDisks(userId, memoryDisks)
 
 	# forecastioAPI.getWeatherAtTime('37.866795', '-122.262635', '2015-06-20T12:00:00')
 	return redirect('service_authorization')
@@ -544,7 +548,7 @@ def testbucket():
 	return render_template('myfiles.html', files=test)
 
 @app.route('/uploadapi/<userfolder>', methods=['GET', 'POST'])
-def uploadapi(userfolder):
+def uploadapi2(userfolder):
 	#userid and folder name should be separated by '-'
 	#static/staging/alexjones/20191904
 	uid=userfolder.split('-')[0]
@@ -552,6 +556,15 @@ def uploadapi(userfolder):
 	returnobj=metaclient.storefilesapi(uid,date)
 	print "api returns object", returnobj
 	return render_template('myfiles.html', files=str(returnobj))
+
+def uploadapi(userfolder):
+	#userid and folder name should be separated by '-'
+	#static/staging/alexjones/20191904
+	uid=userfolder.split('-')[0]
+	date=userfolder.split('-')[1]
+	returnobj=metaclient.storefilesapi(uid,date)
+	print "api returns object", returnobj
+	return returnobj
 
 @app.route('/manageuploads', methods=['GET', 'POST'])
 def manageuploads():

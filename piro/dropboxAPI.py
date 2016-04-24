@@ -414,7 +414,11 @@ def getFilesFromFolder(folderPath):
 # Downloads the file at the given path to a specified folder
 def downloadFile(filePath, fileName, date):
 	userId = session['userId']
-	downloadDirectory = 'static/staging/'+userId+'/'+date+'/'
+
+	path1=os.path.dirname(__file__)
+	dirpath=os.path.join(path1,'static','staging',str(userid),date)
+	downloadDirectory = dirpath
+	# downloadDirectory = 'static'++'staging'+os.sep+userId+'/'+date+'/'
 	# Check if download directory exists; create if it does not exist
 	if not os.path.exists(downloadDirectory):
 		os.makedirs(downloadDirectory)

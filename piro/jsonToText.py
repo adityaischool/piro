@@ -20,7 +20,7 @@ memoryDisks = memoryDiskDb.memoryDisks
 def outputTxtFromJson():
 	userId = session['userId']
 
-	dates = ['20160204', '20160106', '20130331']
+	# dates = ['20160204', '20160106', '20130331']
 
 	# queryResultDate = memoryDisks.find({'$and': [{'userId': userId}, {'date': '20160106'}]})
 
@@ -34,7 +34,10 @@ def outputTxtFromJson():
 
 	for result in queryResults:
 		if result['date'] in dates:
-			downloadDirectory = 'static/staging/'+userId+'/'+result['date']+'/'
+			path1=os.path.dirname(__file__)
+			dirpath=os.path.join(path1,'static','staging',str(userid),date)
+			downloadDirectory = dirpath
+			# downloadDirectory = 'static/staging/'+userId+'/'+result['date']+'/'
 
 			# Check if download directory exists; create if it does not exist
 			if not os.path.exists(downloadDirectory):
