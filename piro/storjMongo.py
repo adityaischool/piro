@@ -19,7 +19,7 @@ storjHashesDb = client.storjHashesDb
 storjHashes = storjHashesDb.storjHashes
 
 
-
+# 
 def writeToStorj(storjHashObj):
 	userId = storjHashObj['userId']
 	date = storjHashObj['date']
@@ -28,7 +28,7 @@ def writeToStorj(storjHashObj):
 	storjHashes.insert(storjHashObj)
 	storjHashesAfter = storjHashes.find({'userId': userId}).count()
 
-	response = 'Successfully inserted', storjHashesBefore,storjHashesAfter, 'Storj Hashes for date', date, 'into Mongo'
+	response = 'Successfully inserted', storjHashesBefore, storjHashesAfter, 'Storj Hashes for date', date, 'into Mongo'
 
 	return response
 
