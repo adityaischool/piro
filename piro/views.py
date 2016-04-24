@@ -545,6 +545,8 @@ def testbucket():
 
 @app.route('/uploadapi/<userfolder>', methods=['GET', 'POST'])
 def uploadapi(userfolder):
+	#userid and folder name should be separated by '-'
+	#static/staging/alexjones/20191904
 	uid=userfolder.split('-')[0]
 	date=userfolder.split('-')[1]
 	returnobj=metaclient.storefilesapi(uid,date)

@@ -303,7 +303,7 @@ def storefilesapi(userid,date1):
 	except Exception as e:
 		print "Exception for",fileid,e
 		writefile.writetologs("Exception for "+fileid+str(e)+"\n")
-		print "metadisk hash is....",metahash
-		retobj['filehash']=metahash
+	print "metadisk hash is....",metahash
+	retobj['filehash']=metahash
 	retobj['buckethash']=returnobject['bucketid']
 	return retobj
