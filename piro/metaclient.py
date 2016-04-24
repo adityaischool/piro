@@ -303,7 +303,27 @@ def storefilesapi(userid,date1):
 	except Exception as e:
 		print "Exception for",fileid,e
 		writefile.writetologs("Exception for "+fileid+str(e)+"\n")
+	l1= new_bucket.files.all()
+	#print l1.name
+	# retstring="Bucket ID = "+new_bucket.id
+	for fname in l1:
+		if ("metadisk" in fname.name):
+			metahash=fname.hash
 	print "metadisk hash is....",metahash
 	retobj['filehash']=metahash
 	retobj['buckethash']=returnobject['bucketid']
 	return retobj
+
+def liststagingfiles():
+	#every capsule raw file will be inside a folder within staging
+	#staging/usernamedate
+	#Usage: Pass in the bucket name and directory of file staging
+	#Will return a hash id for the (metadisk file on storj)
+	print "current directory \n",os.path.dirname(__file__)
+	path1=os.path.dirname(__file__)
+	# #path2=filepath
+	dirpath=os.path.join(path1,'static','staging')
+	# filelist=os.listdir(dirpath)
+	for curdir,folders,files in os.walk(dirpath):
+		print curdir,files
+	return "true"

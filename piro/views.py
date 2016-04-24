@@ -552,3 +552,11 @@ def uploadapi(userfolder):
 	returnobj=metaclient.storefilesapi(uid,date)
 	print "api returns object", returnobj
 	return returnobj
+
+@app.route('/manageuploads', methods=['GET', 'POST'])
+def manageuploads():
+	#userid and folder name should be separated by '-'
+	#static/staging/alexjones/20191904
+	returnobj=metaclient.liststagingfiles()
+	print "api returns object", returnobj
+	return returnobj
