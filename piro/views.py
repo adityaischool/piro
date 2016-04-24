@@ -216,6 +216,11 @@ def getRandomDates(userId, numDates):
 # USE THIS FOR TESTING DIFFERENT API FUNCTIONALITY
 @app.route('/test-api')
 def testAPIButton():
+	pass
+
+# THIS WILL GET ALL OF THE LOGGED-IN USER'S UNSYNCED DATA FROM EACH SERVICE
+@app.route('/get-all')
+def getAll():
 	userId = session['userId']
 	setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
 	setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
@@ -225,24 +230,16 @@ def testAPIButton():
 	setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
 	setAPICredentials('spotify', '3a1f5d8baa2149b48d9a8128bcc48c05', 'ce6cc2bd81324433984c3f7ab55155b0')
 
-	instagramAPI.resetMostRecentItemId()
+	# instagramAPI.resetMostRecentItemId()
 	instagramAPI.getAllNewPosts()
 
-	foursquareAPI.resetMostRecentItemId()
+	# foursquareAPI.resetMostRecentItemId()
 	foursquareAPI.getUserCheckinHistory()
 
-	jsonToText.outputTxtFromJson()
-
-	# uploadToStorj(userId, '20160204')
-
-	# diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
-
-	# return redirect('/api/v1/getRandomDisk')
-
-	lastfmAPI.resetMostRecentPlaybackTimestamp()
+	# lastfmAPI.resetMostRecentPlaybackTimestamp()
 	lastfmAPI.getUserHistoricalPlays()
 
-	dropboxAPI.resetUserFolderCursors()
+	# dropboxAPI.resetUserFolderCursors()
 	dropboxAPI.pollUserSelectedFolders()
 
 	# fitbitAPI.resetLastFitbitSyncDate()
@@ -256,7 +253,15 @@ def testAPIButton():
 	memoryDisks = diskGenerator.getUserMemoryDisks(userId)
 	diskGenerator.generateCompactDisks(userId, memoryDisks)
 
+	# uploadToStorj(userId, '20160204')
+
+	# diskGenerator.getDataPointsForUserAndDate(userId, '20160403')
+
+	# return redirect('/api/v1/getRandomDisk')
+
 	# forecastioAPI.getWeatherAtTime('37.866795', '-122.262635', '2015-06-20T12:00:00')
+
+	jsonToText.outputTxtFromJson()
 	return redirect('service_authorization')
 
 # A function to be called to poll all of user's authorized apps/services
