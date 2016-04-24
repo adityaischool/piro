@@ -1,0 +1,57 @@
+-blockchain architecture
+-machine learning - highly likely
+-this day in the past - likely
+-shredding algorithms
+-storj goes down or changes t&c
+-how iwll you respond to government requests
+-conceptualizing privacy: specifics
+
+
+----Discussion-Apr 23-Alex's house-Attendees are Alex,Sunita,SJ,Adi&Jackson----
+--sponsored by paradise and storj--
+Endgame is economics. We are trying to get privacy to audience and the key is economics. Exactly what elon is doing."gas cars to electric"
+
+
+Privacy
+-awareness,conceptualizing, 
+-consent transparency(jennas paper, leslie's interview, tldr tos, jen king workshop SOUP)
+-Chris Hoofie - privacy by design
+-privacy education element in design, onboarding part, subtle design animations to raise awareness
+
+Economics
+-How is this going to be viable-biz model of companies
+-Why would dropbox/enterprise move to blockchain- research business that follwed this trend. Give a stellar argument
+-Industry landscape: Why would finance/other industries
+-Application level :If users want to opt in to get more smart services. ML implementation ties in with this. Constraints are application design to restrict ML mechanismsonly for users who opt-in. Can you have that while restricting devs from acessing data. Ultimately this control should lie in with the user. New york infographic about data control.
+-Inversion of economic model(Fitbit)
+-Real data or projection about pricing. 
+-future of us-information storage by default example no icloud
+-"everyone has the blockchain interface"
+-commodity vs algorithmic storage
+*dropbox will be disrupted
+*smart companies ML companies its a hard Q
+*ties in with opt in
+*ties in with inversion of economic model
+*bring up the three dimensions - ux,price,privacy
+*oauth type thing - if facebook wants to extract metadata its oauth type - inversion of service.service is valuable but my data is expensive. pay my storage and get that data. Alex-  "actually it starts of free, but its limited, and you get paid to opt in. Then a co uses that to make money. Its not opt in to sell your data, its opt in to make service better?" . SJ - lets not go into facebook selling data. 
+-3d model privacy,Ux,price
+-timehop(low privacy,high UX,): it doesnt make money but they spend money. Memoir gets paid for different Quality of user data. 
+-"Foot in the door for B2C" B2b will drive this. But B2b drives this we are left with a facebook relying on storage from an underlying b2b company. Like dropbox owns a milion PB of blockchain storage and opens up to facebook for storage. and the end c gets nothing , so we need to get a foot in the door for a UX built on blockchain.
+-a premium issue v2 would be a higher - has to be something super, premium
+-Elon musk- disruption from above, dont skirt around that
+- a savesense with blockchain?
+-talk about vision
+-we control economics, and we believe the best way to gain control over privacy is to have a strong economic foundation
+
+
+Technology
+-Tunnelling
+-Ethereum
+-MaidSafe
+
+Blockchain
+-
+
+Storj
+-Strategic partnership
+-
