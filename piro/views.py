@@ -239,32 +239,29 @@ def getAll():
 	setAPICredentials('dropbox', 'f2ysiyl8imtvz0g', '6pk00rjwh5s24cr')
 	setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
 	setAPICredentials('spotify', '3a1f5d8baa2149b48d9a8128bcc48c05', 'ce6cc2bd81324433984c3f7ab55155b0')
-
-	# instagramAPI.resetMostRecentItemId()
-	print "instagram"
-	instagramAPI.resetMostRecentItemId()
-	instagramAPI.getAllNewPosts()
-
-	# foursquareAPI.resetMostRecentItemId()
-	print "four square"
-	foursquareAPI.resetMostRecentItemId()
-	foursquareAPI.getUserCheckinHistory()
-
-	# lastfmAPI.resetMostRecentPlaybackTimestamp()
-	print "last fm"
-	lastfmAPI.resetMostRecentPlaybackTimestamp()
-	lastfmAPI.getUserHistoricalPlays()
-	print "dropbox"
-	# dropboxAPI.resetUserFolderCursors()
-	dropboxAPI.resetUserFolderCursors()
-	dropboxAPI.pollUserSelectedFolders()
-
+	try:
+		# instagramAPI.resetMostRecentItemId()
+		print "instagram"
+		instagramAPI.resetMostRecentItemId()
+		instagramAPI.getAllNewPosts()
+		# foursquareAPI.resetMostRecentItemId()
+		print "four square"
+		foursquareAPI.resetMostRecentItemId()
+		foursquareAPI.getUserCheckinHistory()
+		# lastfmAPI.resetMostRecentPlaybackTimestamp()
+		print "last fm"
+		lastfmAPI.resetMostRecentPlaybackTimestamp()
+		lastfmAPI.getUserHistoricalPlays()
+		print "dropbox"
+		# dropboxAPI.resetUserFolderCursors()
+		dropboxAPI.resetUserFolderCursors()
+		dropboxAPI.pollUserSelectedFolders()
+	except Exception as e:
+		print "exception",e
+		return redirect('service_authorization')
 	# fitbitAPI.resetLastFitbitSyncDate()
 	# fitbitAPI.pollRecentFitbitData()
-
 	# timezoneUtil.reverseGeocodeBusiness(37.880208, -122.269341)
-
-
 	diskGenerator.generateHistoricalDisks(userId)
 
 	memoryDisks = diskGenerator.getUserMemoryDisks(userId)
