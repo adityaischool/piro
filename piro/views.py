@@ -129,8 +129,13 @@ def submitRegistration():
 			# TODO: GET USER'S ACTUAL PI MAC ADDRESSS
 			user = User(userId, username, email, onboarded, timezone, '0000000000000000')
 			# Add and commit newly created User db record
-			db.session.add(user)
-			db.session.commit()
+			try:
+				print "trying to add user"
+				db.session.add(user)
+				db.session.commit()
+				print "added user"
+			except Exception as e:
+				print "caught exception",e
 			# Set session values
 			session['username'] = username
 			session['userId'] = userId
