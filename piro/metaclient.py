@@ -1,4 +1,5 @@
 import metadisk,hashlib,os,writefile
+print " \n           ===building metadisk client===            "
 # Get all registered public keys
 #(private_key, public_key) = metadisk.generate_new_key_pair()
 print metadisk.authenticate(email='bigchobbit@gmail.com', password=hashlib.sha256(b'12345678').hexdigest())
