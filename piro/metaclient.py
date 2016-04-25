@@ -255,7 +255,10 @@ def storefilesapi(userid,date1):
 	print type(filelist)
 	bucketid=userid+date
 	#new_bucket=metadisk.buckets.get(bucketid)
-	new_bucket = metadisk.buckets.create(name=bucketid)
+	try:
+		new_bucket = metadisk.buckets.create(name=bucketid)
+	except Exception as e:
+		print "=====                    metadisk break                      ====","\n",e
 	print "bucket created"
 	print new_bucket,new_bucket.id
 	#new_bucket=metadisk.buckets.get('570c997da2ae841d2ea9798e')
