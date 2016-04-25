@@ -10,7 +10,7 @@ from .sdk import BucketManager, UserKeyManager
 
 buckets = BucketManager()
 public_keys = UserKeyManager()
-
+print "inside metadisk init py"
 authenticate = api_client.authenticate
 register_new_user = api_client.register_user
 
