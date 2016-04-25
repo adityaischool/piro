@@ -34,13 +34,16 @@ def setAPICredentials(apiName, apiKeyOrClientId, apiSecret):
 		apiNameQueryResult.apiKeyOrClientId = apiKeyOrClientId
 		apiNameQueryResult.apiSecret = apiSecret
 	else:
+		print "no api credentials"
 		# Create a new db record to be inserted into the APICredentials table
 		apiCredentials = APICredentials(apiName, apiKeyOrClientId, apiSecret)
 		# Add and commit newly created apiCredentials db record
+		print "db add api credentials"
 		db.session.add(apiCredentials)
 	# Commit the results to the UserDevice table in the db
 	try:
 		db.session.commit()
+		
 	except Exception as e:
 		print
 		print "------- ERROR WRITING", apiName, "API CREDENTIALS DB -------", e

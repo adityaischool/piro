@@ -238,14 +238,17 @@ def getAll():
 	setAPICredentials('spotify', '3a1f5d8baa2149b48d9a8128bcc48c05', 'ce6cc2bd81324433984c3f7ab55155b0')
 
 	# instagramAPI.resetMostRecentItemId()
+	print "instagram"
 	instagramAPI.getAllNewPosts()
 
 	# foursquareAPI.resetMostRecentItemId()
+	print "four square"
 	foursquareAPI.getUserCheckinHistory()
 
 	# lastfmAPI.resetMostRecentPlaybackTimestamp()
+	print "last fm"
 	lastfmAPI.getUserHistoricalPlays()
-
+	print "dropbox"
 	# dropboxAPI.resetUserFolderCursors()
 	dropboxAPI.pollUserSelectedFolders()
 

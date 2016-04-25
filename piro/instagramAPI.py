@@ -159,6 +159,7 @@ def resetMostRecentItemId():
 
 # Get all of a user's posts that have not already been retrieved in the past
 def getAllNewPosts():
+	print "getAllNewPosts"
 	userId = session['userId']
 	# ######## REMOVE THIS LINE ONCE TESTING IS DONE!!!! #########
 	# dataPoints.remove({'$and': [{'userId': userId}, {'source': 'instagram'}]})
