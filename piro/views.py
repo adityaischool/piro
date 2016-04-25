@@ -240,7 +240,6 @@ def getAll():
 	setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
 	setAPICredentials('spotify', '3a1f5d8baa2149b48d9a8128bcc48c05', 'ce6cc2bd81324433984c3f7ab55155b0')
 
-<<<<<<< HEAD
 	# instagramAPI.resetMostRecentItemId()
 	print "instagram"
 	instagramAPI.resetMostRecentItemId()
