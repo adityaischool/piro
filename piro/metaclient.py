@@ -340,7 +340,7 @@ def liststagingfiles():
 			#restdir=curdir[15+ind:len(curdir)-15-ind]
 			restdir=curdir[-(len(curdir)-15-ind):]
 			print "restdir",restdir
-			if restdir.index(os.sep):
+			if os.sep in restdir:
 				uid=restdir.split(os.sep)[0]
 				date=restdir.split(os.sep)[1]
 				print "numfiles-",len(files)
