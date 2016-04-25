@@ -1,6 +1,6 @@
 from flask import render_template, request, session, redirect, jsonify, Response, escape, url_for
 from piro import app, models, db
-import urllib2,fitoauth
+import urllib2,fitoauth,pymongo
 import math, metaclient
 import json, os, requests, datetime, time
 from flask import Response
@@ -83,7 +83,16 @@ def generateUserId(userName, email):
 	print "------- HASHED USER ID -------", m.hexdigest()
 	return m.hexdigest()
 
-
+@app.route('/cleardatafrommongo')
+def cleardatafrommongo():
+	# Instantiate Mongo client
+	client = pymongo.MongoClient()
+	# Instantiate Mongo data point db
+	dataPointDb = client.dataPointDb
+	dataPoints = dataPointDb.dataPoints
+	# Instantiate Mongo Dropbox db
+	dropboxDb = client.dropbox
+	dboxUserFolders = dropboxDb.dboxUserFolders
 # Logout handler
 @app.route('/logout')
 def logout():

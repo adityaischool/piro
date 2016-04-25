@@ -46,5 +46,5 @@ def outputTxtFromJson():
 		print '======== download directory:', downloadDirectory
 		print 'filename =============', result['date']
 
-		with open(downloadDirectory+result['date']+'.txt', 'w') as outfile:
+		with open(downloadDirectory+os.sep+result['date']+'.txt', 'w') as outfile:
 				json.dump(dumps(result), outfile)

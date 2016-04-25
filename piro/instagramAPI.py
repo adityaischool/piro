@@ -260,7 +260,7 @@ def downloadFile(url, date):
 		os.makedirs(downloadDirectory)
 	fileName = url.split(os.sep)[-1].split('?')[0]
 	# Concatenate downloadDirectory + fileName
-	pathPlusFileName = downloadDirectory + fileName
+	pathPlusFileName = downloadDirectory + os.sep+fileName
 	# Download file at from specified Instagram URL to specified local path
 	try:
 		print

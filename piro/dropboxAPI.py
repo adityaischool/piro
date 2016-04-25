@@ -423,7 +423,7 @@ def downloadFile(filePath, fileName, date):
 	if not os.path.exists(downloadDirectory):
 		os.makedirs(downloadDirectory)
 	# Download file at from specified Dropbox path to specified local path
-	fileMetadata = dbox.files_download_to_file(downloadDirectory+fileName, filePath)
+	fileMetadata = dbox.files_download_to_file(downloadDirectory+os.sep+fileName, filePath)
 	
 	# ADD CODE TO UPLOAD PHOTO FILES TO STORJ - WILL MATCH TO DATAPOINT BY FILENAME
 	# ONCE FILES UPLOADED TO STORJ, DELETE FROM WEB SERVER
