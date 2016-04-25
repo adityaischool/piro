@@ -35,7 +35,7 @@ def outputTxtFromJson():
 	for result in queryResults:
 		# if result['date'] in dates:
 		path1=os.path.dirname(__file__)
-		dirpath=os.path.join(path1,'static','staging',str(userId),date)
+		dirpath=os.path.join(path1,'static','staging',str(userId),result['date'])
 		downloadDirectory = dirpath
 		# downloadDirectory = 'static/staging/'+userId+'/'+result['date']+'/'
 
