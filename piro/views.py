@@ -216,6 +216,9 @@ def getRandomDates(userId, numDates):
 # USE THIS FOR TESTING DIFFERENT API FUNCTIONALITY
 @app.route('/test-api')
 def testAPIButton():
+
+	
+
 	return redirect('service_authorization')
 
 # THIS WILL GET ALL OF THE LOGGED-IN USER'S UNSYNCED DATA FROM EACH SERVICE
@@ -223,7 +226,7 @@ def testAPIButton():
 def getAll():
 	userId = session['userId']
 
-	
+
 	setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
 	setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
 	setAPICredentials('instagram', '710b8ed34bce4cc7894e7991459a4ebb', '23276b9f88c94e30b880a072041aecb3')
@@ -232,16 +235,16 @@ def getAll():
 	setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
 	setAPICredentials('spotify', '3a1f5d8baa2149b48d9a8128bcc48c05', 'ce6cc2bd81324433984c3f7ab55155b0')
 
-	# instagramAPI.resetMostRecentItemId()
+	instagramAPI.resetMostRecentItemId()
 	instagramAPI.getAllNewPosts()
 
-	# foursquareAPI.resetMostRecentItemId()
+	foursquareAPI.resetMostRecentItemId()
 	foursquareAPI.getUserCheckinHistory()
 
-	# lastfmAPI.resetMostRecentPlaybackTimestamp()
+	lastfmAPI.resetMostRecentPlaybackTimestamp()
 	lastfmAPI.getUserHistoricalPlays()
 
-	# dropboxAPI.resetUserFolderCursors()
+	dropboxAPI.resetUserFolderCursors()
 	dropboxAPI.pollUserSelectedFolders()
 
 	# fitbitAPI.resetLastFitbitSyncDate()
