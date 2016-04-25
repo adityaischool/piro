@@ -340,10 +340,11 @@ def liststagingfiles():
 			#restdir=curdir[15+ind:len(curdir)-15-ind]
 			restdir=curdir[-(len(curdir)-15-ind):]
 			print "restdir",restdir
-			uid=restdir.split(os.sep)[0]
-			date=restdir.split(os.sep)[1]
-			print "numfiles-",len(files)
-			tempdict={'user':uid,'date':date,'numfiles':len(files)}
-			retobj.append(tempdict)
-			print "added",tempdict
+			if restdir.index(os.sep):
+				uid=restdir.split(os.sep)[0]
+				date=restdir.split(os.sep)[1]
+				print "numfiles-",len(files)
+				tempdict={'user':uid,'date':date,'numfiles':len(files)}
+				retobj.append(tempdict)
+				print "added",tempdict
 	return retobj
