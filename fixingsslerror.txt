@@ -1,0 +1,42 @@
+If it's urllib3 library that's generating warnings, the best place to look would be it's documentation:
+
+
+
+SNIMissingWarning
+New in version 1.13.
+
+Certain Python distributions (specifically, versions of Python earlier than 2.7.9) and older OpenSSLs have restrictions that prevent them from using the SNI (Server Name Indication) extension. This can cause unexpected behaviour when making some HTTPS requests, usually causing the server to present the a TLS certificate that is not valid for the website you’re trying to access.
+
+If you encounter this warning, it is strongly recommended that you upgrade to a newer Python version, or that you use pyOpenSSL as described in the OpenSSL / PyOpenSSL section.
+
+For info about disabling warnings
+
+http://urllib3.readthedocs.org/en/latest/security.html#disabling-warnings
+
+
+OpenSSL / PyOpenSSL
+By default, we use the standard library’s ssl module. Unfortunately, there are several limitations which are addressed by PyOpenSSL:
+
+(Python 2.x) SNI support.
+(Python 2.x-3.2) Disabling compression to mitigate CRIME attack.
+To use the Python OpenSSL bindings instead, you’ll need to install the required packages:
+
+$ pip install pyopenssl ndg-httpsclient pyasn1
+If cryptography fails to install as a dependency, make sure you have libffi available on your system and run pip install cryptography.
+
+Once the packages are installed, you can tell urllib3 to switch the ssl backend to PyOpenSSL with inject_into_urllib3():
+
+import urllib3.contrib.pyopenssl
+urllib3.contrib.pyopenssl.inject_into_urllib3()
+Now you can continue using urllib3 as you normally would.
+
+For more details, check the pyopenssl module.
+
+
+
+if trouble instaling cryptography
+
+Looks like you haven't properly installed the header files and static libraries for python dev. If your OS is Ubuntu/Debian:
+
+sudo apt-get install python-dev
+

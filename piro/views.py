@@ -581,7 +581,7 @@ def uploadapi2(userfolder):
 	#static/staging/alexjones/20191904
 	uid=userfolder.split('-')[0]
 	date=userfolder.split('-')[1]
-	returnobj=metaclient.storefilesapi(uid,date)
+	returnobj=metaclient.storefilesapi(str(uid),str(date))
 	print "api returns object", returnobj
 	return render_template('myfiles.html', files=str(returnobj))
 

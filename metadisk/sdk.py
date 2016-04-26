@@ -61,6 +61,8 @@ class BucketManager:
             storage_limit=storage_limit,
             transfer_limit=transfer_limit,
         )
+        print "bucket_json"
+        print bucket_json
         return Bucket(bucket_json)
 
     @staticmethod

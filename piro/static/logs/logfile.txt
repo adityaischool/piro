@@ -99,4 +99,4 @@ Bucket created 571c39a51d1c88ca273ec451Bucket created 571c6e611d1c88ca273ec56cBu
 Bucket created 571dcc64a41105b77f119bbcBucket created 571dcc96a41105b77f119bbeException for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\a.jpg502 Server Error: Bad Gateway for url: https://api.storj.io/buckets/571dcc96a41105b77f119bbe/files
 Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\metadisk.txt502 Server Error: Bad Gateway for url: https://api.storj.io/buckets/571dcc96a41105b77f119bbe/files
 Exception for C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging\alex\20160101\metadisk.txt502 Server Error: Bad Gateway for url: https://api.storj.io/buckets/571dcc96a41105b77f119bbe/files
-Bucket created 571e5e3fc480bb136b9cb445Bucket created 571e69c8ddf7b629666aa505
+Bucket created 571e5e3fc480bb136b9cb445Bucket created 571e69c8ddf7b629666aa505Bucket created 571ee701b0187554021f0a46

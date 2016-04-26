@@ -268,6 +268,7 @@ def storefilesapi(userid,date1):
 	#print new_bucket
 	returnobject={}
 	returnobject['bucketid']=new_bucket.id
+	print "returnobject",returnobject,"\n","writing to logs"
 	writefile.writetologs("Bucket created "+new_bucket.id)
 	returnobject['files']=[]
 	#create metadisk text file
