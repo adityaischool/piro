@@ -184,7 +184,7 @@ def getRandomDisk():
 	return jsonify(returnResponse), 200
 
 @app.route('/getRandomDisk/<userid>', methods=['GET'])
-def getRandomDisk(userid1):
+def getRandomDiskForUser(userid1):
 	userId = userid1
 	# key = request.args.get('key')
 	returnResponse = {
