@@ -183,6 +183,20 @@ def getRandomDisk():
 
 	return jsonify(returnResponse), 200
 
+@app.route('/getRandomDisk/<userid>', methods=['GET'])
+def getRandomDisk(userid1):
+	userId = userid1
+	# key = request.args.get('key')
+	returnResponse = {
+	'storjHashes': []
+	}
+	numDates = 5
+	dates = getRandomDates(userId, numDates)
+	for date in dates:
+		storjHash = storjMongo.getDateHashes(userId, date)
+		returnResponse['storjHashes'].append(storjHash)
+
+	return jsonify(returnResponse), 200
 
 def uploadToStorj(userId, date):
 	# Remove this once we're calling this function programatically for each user once all of their API data is fetched for the day
