@@ -577,12 +577,16 @@ def testbucket():
 
 @app.route('/uploadapi/<userfolder>', methods=['GET', 'POST'])
 def uploadapi2(userfolder):
+	#this api will return you an object that will then go into mongo
 	#userid and folder name should be separated by '-'
 	#static/staging/alexjones/20191904
 	uid=userfolder.split('-')[0]
 	date=userfolder.split('-')[1]
 	returnobj=metaclient.storefilesapi(str(uid),str(date))
-	print "api returns object", returnobj
+	print "Object returned from upload api", returnobj
+	storjMongo.writestorjtomongo(str(uid),str(date),returnobj['buckethash'],returnobj['filehash'])
+	#retobj['filehash']=metahash
+	#retobj['buckethash']
 	return render_template('myfiles.html', files=str(returnobj))
 
 def uploadapi(userfolder):
@@ -592,6 +596,7 @@ def uploadapi(userfolder):
 	date=userfolder.split('-')[1]
 	returnobj=metaclient.storefilesapi(uid,date)
 	print "api returns object", returnobj
+	storjMongo.writestorjtomongo
 	return returnobj
 
 @app.route('/manageuploads', methods=['GET', 'POST'])

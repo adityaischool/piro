@@ -20,15 +20,18 @@ storjHashes = storjHashesDb.storjHashes
 
 
 # 
-def writeToStorj(storjHashObj):
-	userId = storjHashObj['userId']
-	date = storjHashObj['date']
-
-	storjHashesBefore = storjHashes.find({'userId': userId}).count()
-	storjHashes.insert(storjHashObj)
-	storjHashesAfter = storjHashes.find({'userId': userId}).count()
-
-	response = 'Successfully inserted', storjHashesBefore, storjHashesAfter, 'Storj Hashes for date', date, 'into Mongo'
+def writestorjtomongo(userid,date,buckethash,filehash):
+	#userId = storjHashObj['userId']
+	#date = storjHashObj['date']
+	#metadiskhash = storjHashObj['metadiskhash']
+	print "inside write storj to mongo, writing to mongo now"
+	print "userid,date,buckethash,filehash=",userid,date,buckethash,filehash
+	writeobj={'userid':userid,'date':date,'buckethash':buckethash,'filehash':filehash}
+	print "writeobj",writeobj
+	storjHashesBefore = storjHashes.find({'userId': userid}).count()
+	storjHashes.insert(writeobj)
+	storjHashesAfter = storjHashes.find({'userId': userid}).count()
+	response = 'Successfully inserted'
 
 	return response
 
