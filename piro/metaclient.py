@@ -256,7 +256,7 @@ def storefilesapi(userid,date1):
 	bucketid=userid+date
 	#new_bucket=metadisk.buckets.get(bucketid)
 	try:
-		print "trying metadisk code"
+		print "Creating Metadisk Bucket For "+userid+" and date "+date
 		print metadisk.api_client.api_url
 		new_bucket = metadisk.buckets.create(name=bucketid)
 	except Exception as e:
@@ -277,7 +277,7 @@ def storefilesapi(userid,date1):
 		#note the below line - you cant pass a file directly into api, pass the fpath instead
 		#laso note documentation for python api maybe messy
 		with open(fileid) as file1:
-			print "filetype",type(fileid)
+			#print "filetype",type(fileid)
 			print "upload started...",fileid
 			try:
 				#hash1=new_bucket.files.upload(fileid)
@@ -287,29 +287,37 @@ def storefilesapi(userid,date1):
 				writefile.writetologs("Exception for "+fileid+str(e)+"\n")
 			print "upload over",filename
 			#returnobject['files'].append(hash1)
+	print "-------uploaded all files to bucket-------"
+	print "----now searching bucket for uploaded files----"
 	listoffilesinbucket= new_bucket.files.all()
-	print type(listoffilesinbucket)
+	#print type(listoffilesinbucket)
 	for fname in listoffilesinbucket:
-		if fname.name in filename:
+		if fname.name in filelist:
 			returnobject['files'].append(fname.hash)
-	print returnobject
+	print "---uploaded files----\n",returnobject
 	allhashes=""
 	retobj={}
 	#writeMetaDiskToFile(returnobject)
 	for filehash in returnobject['files']:
 		allhashes=allhashes+filehash+"\n"
+	print "---Creating Metadisk file---"
+	print "---CONTENT for METADISK---\n",allhashes
 	fileid=str(os.path.join(dirpath,"metadisk.txt"))
 		#create metadisk
 	with open(fileid,"a") as myfile:
 		myfile.write(allhashes)
 		#file auto closes-ready to upload
-	print "now uploading metadisk text file"
+	print "---now uploading metadisk text file---"
 	metahash=""
 	try:
 		metahash=new_bucket.files.upload(fileid)
 	except Exception as e:
 		print "Exception for",fileid,e
 		writefile.writetologs("Exception for "+fileid+str(e)+"\n")
+		print "Metadisk upload failed! Cancel PUSH TO storj"
+		return False
+	print "Metadisk successfully uploaded - ",metahash
+	print "\n\n Listing uploaded files in bucket"
 	l1= new_bucket.files.all()
 	#print l1.name
 	# retstring="Bucket ID = "+new_bucket.id

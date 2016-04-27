@@ -1,5 +1,6 @@
 staging
 staging/*
 *.pyc
-metadisk/*
+metadisk/
 piro.db
+logfile.txt

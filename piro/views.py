@@ -172,25 +172,11 @@ def submitRegistration():
 def getRandomDisk():
 	userId = session['userId']
 	# key = request.args.get('key')
-
-	# missingKeyError = {
-	# 'response': 'Error: Missing Key'
-	# }
-
-	# # Need to change this part to process an api key and return the user id
-	# if key:
-	# 	userId = key
-	# else:
-	# 	return jsonify(missingKeyError), 401
-
 	returnResponse = {
 	'storjHashes': []
 	}
-
 	numDates = 5
-
 	dates = getRandomDates(userId, numDates)
-
 	for date in dates:
 		storjHash = storjMongo.getDateHashes(userId, date)
 		returnResponse['storjHashes'].append(storjHash)
@@ -468,26 +454,6 @@ def fitbitToken():
 		return redirect('/dashboard')
 		return redirect('/connect-lastfm')
 
-# @app.route('/fitbit2', methods=['GET', 'POST'])
-# def fitbithandler2():
-# 	#call fitbit oauth code here
-# 	#foauth2.fitbitoauth()
-# 	z = fitoauth.Fitbit()
-# 	auth_url = z.GetAuthorizationUri()
-# 	print "AAAAuth URL",auth_url
-# 	accesscode=auth_url['access_code']
-# 	token = z.GetAccessToken(access_code)
-# 	response = z.ApiCall(token, '/1/user/-/activities/log/steps/date/today/7d.json')
-# 	print "response",response
-# 	#foauth2.newauth()"""
-
-# 	# If user has already been onboarded, return them to the service authorization page
-# 	if session['onboarded']:
-# 		return redirect('/service_authorization')
-# 	# If user has not been fully onboarded, redirect them to the next service authorization option
-# 	# If this is the last service authorization option available on the list, redirect user to the dashboard
-# 	else:
-# 		return redirect('/connect-lastfm')
 
 @app.route('/requestdata', methods=['GET', 'POST'])
 def upload():
@@ -584,7 +550,8 @@ def uploadapi2(userfolder):
 	date=userfolder.split('-')[1]
 	returnobj=metaclient.storefilesapi(str(uid),str(date))
 	print "Object returned from upload api", returnobj
-	storjMongo.writestorjtomongo(str(uid),str(date),returnobj['buckethash'],returnobj['filehash'])
+	if returnobj:
+		storjMongo.writestorjtomongo(str(uid),str(date),returnobj['buckethash'],returnobj['filehash'])
 	#retobj['filehash']=metahash
 	#retobj['buckethash']
 	return render_template('myfiles.html', files=str(returnobj))
@@ -606,3 +573,5 @@ def manageuploads():
 	returnobj=metaclient.liststagingfiles()
 	print "api returns object", returnobj
 	return render_template('uploads.html', mylist=returnobj)
+
+
