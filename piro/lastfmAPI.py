@@ -206,6 +206,20 @@ def getUserHistoricalPlays():
 					if processedTrack['timestamp'] > mostRecentlyPlayedTimestamp:
 						mostRecentlyPlayedTimestamp = processedTrack['timestamp']
 					historicalPlaysObject['data'].append(processedTrack)
+				if len(historicalPlaysObject['data']) > 0:
+					# Temporarily store dataPoints in Mongo
+					oldCount = dataPoints.count()
+					try:
+						dataPoints.insert(historicalPlaysObject['data'])
+					except Exception as e:
+						print
+						print '------- ERROR WRITING DATA POINTS TO MONGO -------', e
+					# Verify that everything went to Mongo successfully
+					newCount = dataPoints.count()
+					print
+					print "------- NUMBER OF DATA POINTS ATTEMPTED TO ADD TO DATAPOINTS DB:", len(historicalPlaysObject['data'])
+					print "------- SUCCESSFULLY ADDED", newCount - oldCount, 'NEW DATA POINTS TO DATAPOINTS DB -------'
+				historicalPlaysObject['data'] = []
 			else:
 				print
 				print '------- NO MORE RECENT SONG PLAYBACKS! -------'
@@ -223,19 +237,19 @@ def getUserHistoricalPlays():
 	print "---------- THERE WERE", len(historicalPlaysObject['data']), "NEW SONG PLAYBACKS -----------"
 	print
 
-	if len(historicalPlaysObject['data']) > 0:
-		# Temporarily store dataPoints in Mongo
-		oldCount = dataPoints.count()
-		try:
-			dataPoints.insert(historicalPlaysObject['data'])
-		except Exception as e:
-			print
-			print '------- ERROR WRITING DATA POINTS TO MONGO -------', e
-		# Verify that everything went to Mongo successfully
-		newCount = dataPoints.count()
-		print
-		print "------- NUMBER OF DATA POINTS ATTEMPTED TO ADD TO DATAPOINTS DB:", len(historicalPlaysObject['data'])
-		print "------- SUCCESSFULLY ADDED", newCount - oldCount, 'NEW DATA POINTS TO DATAPOINTS DB -------'
+	# if len(historicalPlaysObject['data']) > 0:
+	# 	# Temporarily store dataPoints in Mongo
+	# 	oldCount = dataPoints.count()
+	# 	try:
+	# 		dataPoints.insert(historicalPlaysObject['data'])
+	# 	except Exception as e:
+	# 		print
+	# 		print '------- ERROR WRITING DATA POINTS TO MONGO -------', e
+	# 	# Verify that everything went to Mongo successfully
+	# 	newCount = dataPoints.count()
+	# 	print
+	# 	print "------- NUMBER OF DATA POINTS ATTEMPTED TO ADD TO DATAPOINTS DB:", len(historicalPlaysObject['data'])
+	# 	print "------- SUCCESSFULLY ADDED", newCount - oldCount, 'NEW DATA POINTS TO DATAPOINTS DB -------'
 		
 		# TODO: SEND DATA POINTS TO STORJ
 
