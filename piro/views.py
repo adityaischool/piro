@@ -304,6 +304,8 @@ def diskGet():
 		memoryDisks = diskGenerator.getUserMemoryDisks(userId)
 		diskGenerator.generateCompactDisks(userId, memoryDisks)
 
+	return render_template('data-admin.html')
+
 @app.route('/service-sync')
 def serviceSync():
 	userId = session['userId']
@@ -317,6 +319,8 @@ def serviceSync():
 		foursquareAPI.getUserCheckinHistory()
 	elif service == 'lastfm':
 		lastfmAPI.getUserHistoricalPlays()
+
+	return render_template('data-admin.html')
 
 
 @app.route('/cursor-reset')
@@ -337,7 +341,7 @@ def cursorReset():
 
 	dataPoints.remove({'$and': [{'userId': userId}, {'source': 'instagram'}]})
 
-	return render_template('mongo-admin.html')
+	return render_template('data-admin.html')
 
 @app.route('/datapoint-reset')
 def datapointReset():
@@ -353,7 +357,7 @@ def datapointReset():
 	print 'datapoints count before', countBefore
 	print 'datapoints count after', countAfter
 
-	return render_template('mongo-admin.html')
+	return render_template('data-admin.html')
 
 @app.route('/disk-reset')
 def diskReset():
@@ -370,7 +374,7 @@ def diskReset():
 	print diskType, 'db count before', countBefore
 	print diskType, 'db count after', countAfter
 
-	return render_template('mongo-admin.html')
+	return render_template('data-admin.html')
 
 
 # THIS WILL GET ALL OF THE LOGGED-IN USER'S UNSYNCED DATA FROM EACH SERVICE
