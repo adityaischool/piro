@@ -69,7 +69,7 @@ def generateHistoricalDisks(userId):
 
 	## USE THIS LINE TO MANUALLY SET A START DATE FROM WHICH TO GENERATE MEMORY DISKS - GREAT FOR TESTING!
 	## BE SURE TO COMMENT THIS OUT FOR PRODUCTION!!!
-	newestDiskDate = datetime.utcfromtimestamp(utcFromDatetime(datetimeObjFromYYYYMMDD('20130331')))
+	# newestDiskDate = datetime.utcfromtimestamp(utcFromDatetime(datetimeObjFromYYYYMMDD('20130331')))
 
 
 
