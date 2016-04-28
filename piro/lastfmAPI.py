@@ -272,7 +272,7 @@ def processTrack(track):
 	processedTrack['playbackTimestamp'] = playbackTimestamp
 	processedTrack['imageUrl'] = imageUrl
 	# Return processed track
-	dataPoint = createDataPoint(userId=userId, dataPointType='song', source='lastfm', sourceData=processedTrack, timestamp=playbackTimestamp, location=None, fileName=None)
+	dataPoint = createDataPoint(userId=userId, dataPointType='song', source='lastfm', sourceData=processedTrack, timestamp=playbackTimestamp, coords=None, fileName=None)
 	return dataPoint
 
 if __name__ == '__main__':
