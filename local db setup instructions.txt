@@ -7,3 +7,10 @@ cd c:\Program Files\MongoDB 2.6 Standard\bin
 
 
 mongod --dbpath "c:/Users/brnr0_000/Dropbox/GradSchool/Spring2016/FinalProject/piro/piro/mongo/data"
+
+
+Aditya
+
+>cd C:\Program Files\MongoDB\Server\3.2\bin\
+
+>mongod.exe --dbpath C:\Users\Adi\Documents\berkeleyhackers\metanew\piro\piro\static\staging

@@ -186,7 +186,6 @@ def getRandomDisk():
 	returnResponse = {
 	'storjHashes': []
 	}
-
 	numDates = 5
 
 	dates = getRandomDates(key, numDates)
@@ -197,6 +196,18 @@ def getRandomDisk():
 
 	return jsonify(returnResponse), 200
 
+@app.route('/getRandomDisk/<userid1>', methods=['GET'])
+def getRandomDiskForUser(userid1):
+	userId = userid1
+	print "user id = ",userid1
+	# key = request.args.get('key')
+	returnResponse = {}
+	numDates = 5
+	#dates = getRandomDates(userId, numDates)
+	storjHash=getRandomDiskHashes.getRandomStorjHashes(userid1)
+	returnResponse['disks']=storjHash
+	print returnResponse
+	return jsonify(returnResponse), 200
 
 def uploadToStorj(userId, date):
 	# Remove this once we're calling this function programatically for each user once all of their API data is fetched for the day
@@ -477,26 +488,6 @@ def fitbitToken():
 		return redirect('/dashboard')
 		return redirect('/connect-lastfm')
 
-# @app.route('/fitbit2', methods=['GET', 'POST'])
-# def fitbithandler2():
-# 	#call fitbit oauth code here
-# 	#foauth2.fitbitoauth()
-# 	z = fitoauth.Fitbit()
-# 	auth_url = z.GetAuthorizationUri()
-# 	print "AAAAuth URL",auth_url
-# 	accesscode=auth_url['access_code']
-# 	token = z.GetAccessToken(access_code)
-# 	response = z.ApiCall(token, '/1/user/-/activities/log/steps/date/today/7d.json')
-# 	print "response",response
-# 	#foauth2.newauth()"""
-
-# 	# If user has already been onboarded, return them to the service authorization page
-# 	if session['onboarded']:
-# 		return redirect('/service_authorization')
-# 	# If user has not been fully onboarded, redirect them to the next service authorization option
-# 	# If this is the last service authorization option available on the list, redirect user to the dashboard
-# 	else:
-# 		return redirect('/connect-lastfm')
 
 @app.route('/requestdata', methods=['GET', 'POST'])
 def upload():
@@ -586,12 +577,17 @@ def testbucket():
 
 @app.route('/uploadapi/<userfolder>', methods=['GET', 'POST'])
 def uploadapi2(userfolder):
+	#this api will return you an object that will then go into mongo
 	#userid and folder name should be separated by '-'
 	#static/staging/alexjones/20191904
 	uid=userfolder.split('-')[0]
 	date=userfolder.split('-')[1]
-	returnobj=metaclient.storefilesapi(uid,date)
-	print "api returns object", returnobj
+	returnobj=metaclient.storefilesapi(str(uid),str(date))
+	print "Object returned from upload api", returnobj
+	if returnobj:
+		storjMongo.writestorjtomongo(str(uid),str(date),returnobj['buckethash'],returnobj['filehash'])
+	#retobj['filehash']=metahash
+	#retobj['buckethash']
 	return render_template('myfiles.html', files=str(returnobj))
 
 def uploadapi(userfolder):
@@ -601,6 +597,7 @@ def uploadapi(userfolder):
 	date=userfolder.split('-')[1]
 	returnobj=metaclient.storefilesapi(uid,date)
 	print "api returns object", returnobj
+	storjMongo.writestorjtomongo
 	return returnobj
 
 @app.route('/manageuploads', methods=['GET', 'POST'])
@@ -610,3 +607,5 @@ def manageuploads():
 	returnobj=metaclient.liststagingfiles()
 	print "api returns object", returnobj
 	return render_template('uploads.html', mylist=returnobj)
+
+
