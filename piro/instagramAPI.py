@@ -392,6 +392,7 @@ def processRecentMediaResponse(decodedResponse):
 		tempItem['usersInPhoto'] = usersInPhoto
 		tempItem['tags'] = tags
 		tempItem['location'] = location
+		tempItem['photoDimensions'] = dimensions
 
 		fileName = url.split('/')[-1].split('?')[0]
 

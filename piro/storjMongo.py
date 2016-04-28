@@ -19,7 +19,7 @@ storjHashesDb = client.storjHashesDb
 storjHashes = storjHashesDb.storjHashes
 
 
-# 
+# Write Storj object to storjHashes Mongo collection
 def writeToStorj(storjHashObj):
 	userId = storjHashObj['userId']
 	date = storjHashObj['date']
@@ -32,8 +32,9 @@ def writeToStorj(storjHashObj):
 
 	return response
 
+# Query the storjHashes Mongo collection with a user's id & a daete
 def getDateHashes(userId, date):
-	queryResults = storjHashes.find({{'$and': [{'userId': userId}, {'date': date}]}})
+	queryResults = storjHashes.find({'$and': [{'userId': userId}, {'date': date}]})
 
 	if queryResults.count() > 0:
 		for result in queryResults:

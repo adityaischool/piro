@@ -26,7 +26,7 @@ compactMemoryDisks = compactMemoryDiskDb.compactMemoryDisks
 
 
 def generateHistoricalDisks(userId):
-	# memoryDisks.remove({})
+	memoryDisks.remove({})
 
 	# Iterate through existing disks in Mongo to find the newest disk date as a starting point
 	newestDiskDate = ''
@@ -66,6 +66,12 @@ def generateHistoricalDisks(userId):
 			# Convert newestDiskDate to date object for easy incrementing & comparison
 			newestDiskDate = datetime.utcfromtimestamp(utcFromDatetime(datetimeObjFromYYYYMMDD(dataPoint['adjustedDate'])))
 			break
+
+	## USE THIS LINE TO MANUALLY SET A START DATE FROM WHICH TO GENERATE MEMORY DISKS - GREAT FOR TESTING!
+	## BE SURE TO COMMENT THIS OUT FOR PRODUCTION!!!
+	newestDiskDate = datetime.utcfromtimestamp(utcFromDatetime(datetimeObjFromYYYYMMDD('20130331')))
+
+
 
 	# Get stop date (1 day ago) as a string formatted as YYYYMMDD for comparison to disk dates as we create them
 	# This stop date is set to 7 days so we give the user a week before auto-generating disks
@@ -163,13 +169,90 @@ def getDataPointsForUserAndDate(userId, diskDate):
 		# else:
 		# 	locationWeather['weather'] = None
 
+	images = getImageData(userId, diskDate)
+
 	themeSongs = findThemeSongs(userId, diskDate)
 
-	newDisk = generateDisk(userId, diskDate, dataPointIds=dataPointIds, locations=locations, themeSongs=themeSongs, weather=weather)
+	newDisk = generateDisk(userId, diskDate, dataPointIds=dataPointIds, locations=locations, images=images, themeSongs=themeSongs, weather=weather)
 	print
 	print '------- NEWLY GENERATED DISK -------'
 	pprint(newDisk)
 	return newDisk
+
+def getImageData(userId, diskDate):
+	imageData = []
+
+	mongoQueryResults = dataPoints.find({'$and': [{'userId': userId}, {'adjustedDate': diskDate}, {'dataPointType': 'photo'}]})
+
+	for result in mongoQueryResults:
+		tempImageData = {}
+		if result['source'] == 'dropbox' or result['source'] == 'instagram':
+			print
+			print 'source:', result['source']
+			pprint(result)
+			print
+
+			try:
+				tempImageData['fileName'] = result['fileName']
+			except Exception as e:
+				print
+				print '------- ERROR GETTING PHOTO FILE NAME -------', e
+				tempImageData['fileName'] = None
+			try:
+				tempImageData['width'] = result['sourceData']['photoDimensions']['width']
+			except Exception as e:
+				print
+				print '------- ERROR GETTING PHOTO WIDTH -------', e
+				tempImageData['width'] = None
+			try:
+				tempImageData['height'] = result['sourceData']['photoDimensions']['height']
+			except Exception as e:
+				print
+				print '------- ERROR GETTING PHOTO HEIGHT -------', e
+				tempImageData['height'] = None
+			print
+			print 'tempImageData'
+			pprint(tempImageData)
+			print
+			imageData.append(tempImageData)
+		
+		elif result['source'] == 'foursquare':
+			for photo in result['sourceData']['photos']:
+				try:
+					tempImageData['fileName'] = photo['urlSuffix'].strip('/')
+					print '------- PHOTO FILE NAME -------', tempImageData['fileName']
+				except Exception as e:
+					print
+					print '------- ERROR GETTING PHOTO FILE NAME -------', e
+					tempImageData['fileName'] = None
+				try:
+					tempImageData['width'] = photo['photoDimensions']['width']
+				except Exception as e:
+					print
+					print '------- ERROR GETTING PHOTO WIDTH -------', e
+					tempImageData['width'] = None
+				try:
+					tempImageData['height'] = photo['photoDimensions']['height']
+				except Exception as e:
+					print
+					print '------- ERROR GETTING PHOTO HEIGHT -------', e
+					tempImageData['height'] = None
+				print
+				print 'tempImageData'
+				pprint(tempImageData)
+				print
+				imageData.append(tempImageData)
+
+			# print
+			# print 'source:', result['source']
+			# pprint(result)
+			# print
+
+			# break
+
+	return imageData
+
+
 
 def getUserMemoryDisks(userId):
 	memoryDiskQueryResults = memoryDisks.find({'userId': userId})
@@ -214,7 +297,7 @@ def generateCompactDisks(userId, memoryDisks):
 	print '------- USER NOW HAS', newCount, 'COMPACT MEMORY DISKS -------'
 
 
-def generateDisk(userId, diskDate, dataPointIds, locations, themeSongs, weather):
+def generateDisk(userId, diskDate, dataPointIds, locations, images, themeSongs, weather):
 	creationTimestamp = utcFromDatetime(datetime.now())
 	diskId = generateDiskId(userId, diskDate)
 
@@ -232,6 +315,7 @@ def generateDisk(userId, diskDate, dataPointIds, locations, themeSongs, weather)
 		'notes': [], # a user-defined list of notes/annotations
 		'displayStatus': 'on', # 'on', 'off', or 'snooze', defaults to 'on'
 		'snoozeDate': 0, # a future unix timestamp when this 'disk' becomes 'on' again
+		'images': images,
 		'locations': locations, # a list of all of the resolved location names and lat/lngs from the data points in this 'disk'
 		'date': diskDate, # date string in format YYYYMMDD for this 'disk' - actually encompasses the period 4am-3:59am
 		'dataPointIds': dataPointIds, # a list of all data points, excluding songs, associated with this 'disk' - used for reference

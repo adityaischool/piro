@@ -26,11 +26,21 @@ def returnfiles():
 	l1= new_bucket.files.all()
 	#print l1.name
 	retstring="Bucket ID = "+new_bucket.id
+	files = {
+	'bucketId': new_bucket.id,
+	'files':[]
+	}
+	files
 	for fname in l1:
+		tempObj = {}
+		tempObj['name'] = fname.name
+		tempObj['size'] = fname.size
+		tempObj['hash'] = fname.hash
+		files['files'].append(tempObj)
 		print fname.name,fname.size,fname.hash
 		retstring=retstring+" "+fname.name+" Size= "+str(fname.size)+" Bytes ...Hash = "+fname.hash
 	print "returnstring \n", retstring
-	return retstring
+	return files
 #print new_bucket.files.upload('file.txt')
 #	# 570c997da2ae841d2ea9798e
 #Or a file handle
@@ -116,6 +126,7 @@ def viewfilesinbucket(bucketid):
 	returnobject={}
 	returnobject['files']=[]
 	for fname in listoffilesinbucket:
+
 		returnobject['files'].append(fname)
 	return returnobject
 
@@ -127,7 +138,11 @@ def returnbuckets():
 	bucketid="as"
 	returnobj=[]
 	listbuckets=metadisk.buckets.all()
+	count = 0
 	for l in listbuckets:
+		# if count > 10:
+		# 	return returnobj
+		count += 1
 		tempbucket={}
 		tempbucket['bucketid']=l.id
 		tempbucket['files']=[]
@@ -142,6 +157,7 @@ def returnbuckets():
 			filedata['hash']=fname.hash
 			tempbucket['files'].append(filedata)
 		returnobj.append(tempbucket)
+
 	return returnobj
 def getadmindata():
 	returnobj=returnbuckets()

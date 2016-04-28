@@ -191,9 +191,9 @@ def getUserCheckinHistory():
 def getDownloadUrl(photo):
 	maxDimension = ''
 	constructedUrl = ''
-	if max([int(photo['width']), int(photo['height'])]) >= 500:
+	if max([int(photo['photoDimensions']['width']), int(photo['photoDimensions']['height'])]) >= 500:
 		maxDimension = '500'
-	elif max([int(photo['width']), int(photo['height'])]) < 500:
+	elif max([int(photo['photoDimensions']['width']), int(photo['photoDimensions']['height'])]) < 500:
 		maxDimension = '300'
 	constructedUrl = photo['urlPrefix'] + 'cap' + maxDimension + photo['urlSuffix']
 	
@@ -286,24 +286,32 @@ def processCheckins(decodedResponse):
 		timestamp = checkin['createdAt']
 		timeZoneOffset = checkin['timeZoneOffset']
 		shout = None
-		location = None
+		location = {}
 		venueName = None
 		venueCoords = None
-		venueUrl = None
 		venueId = None
-		event = None
+		# venuePhotoUrl = None
+		# event = None
 		photos = []
-		nearbyFriends = []
+		# nearbyFriends = []
+		photoTimestamp = None
+		photoHeight = None
+		photoWidth = None
+		photoId = None
+		photoUrlPrefix = None
+		photoUrlSuffix = None
 		try:
 			shout = checkin['shout']
 		except Exception as e:
 			print
 			print '------- ERROR EXTRACTING CHECKIN SHOUT -------', e
 		try:
-			checkin['location']['lat']
+			print
+			print '------- FOURSQUARE CHECKIN - LOOKING FOR LOCATION OBJ -------'
+			pprint(checkin)
 			location = {}
-			location['lat'] = checkin['location']['lat']
-			location['long'] = checkin['location']['lng']
+			location['lat'] = checkin['venue']['location']['lat']
+			location['long'] = checkin['venue']['location']['lng']
 		except Exception as e:
 			print
 			print '------- ERROR EXTRACTING CHECKIN LOCATION -------', e
@@ -311,17 +319,17 @@ def processCheckins(decodedResponse):
 			venueName = checkin['venue']['name']
 		except Exception as e:
 			print
-			print '------- ERROR EXTRACTING CHECKIN VENUE -------', e
+			print '------- ERROR EXTRACTING CHECKIN VENUE NAME-------', e
 		try:
 			venueId = checkin['venue']['id']
 		except Exception as e:
 			print
 			print '------- ERROR EXTRACTING CHECKIN VENUE ID -------', e
-		try:
-			venuePhotoUrl = getDownloadUrl(getVenuePhoto(venueId))
-		except Exception as e:
-			print
-			print '------- ERROR EXTRACTING CHECKIN VENUE PHOTO URL -------', e
+		# try:
+		# 	venuePhotoUrl = getDownloadUrl(getVenuePhoto(venueId))
+		# except Exception as e:
+		# 	print
+		# 	print '------- ERROR EXTRACTING CHECKIN VENUE PHOTO URL -------', e
 		try:
 			checkin['venue']['location']['lat']
 			venueCoords = {}
@@ -330,19 +338,21 @@ def processCheckins(decodedResponse):
 		except Exception as e:
 			print
 			print '------- ERROR EXTRACTING CHECKIN VENUE COORDS -------', e
-		try:
-			venueURL = checkin['venue']['url']
-		except:
-			print
-			print '------- ERROR EXTRACTING CHECKIN VENUE URL -------', e
-		try:
-			event = checkin['event']['name']
-		except Exception as e:
-			print
-			print '------- ERROR EXTRACTING CHECKIN EVENT -------', e
+		# try:
+		# 	event = checkin['event']['name']
+		# except Exception as e:
+		# 	print
+		# 	print '------- ERROR EXTRACTING CHECKIN EVENT -------', e
 		try:
 			for photo in checkin['photos']['items']:
+				print
+				print '------- FOURSQUARE PHOTO OBJ -------'
+				pprint(photo)
+				print
 				tempPhoto = {}
+				dimensions = {}
+
+				tempPhoto['photoDimensions'] = dimensions
 				photoTimestamp = photo['createdAt']
 				photoHeight = photo['height']
 				photoWidth = photo['width']
@@ -350,23 +360,28 @@ def processCheckins(decodedResponse):
 				photoUrlPrefix = photo['prefix']
 				photoUrlSuffix = photo['suffix']
 
+				dimensions['height'] = photoHeight
+				dimensions['width'] = photoWidth
+				print
+				print '------- FOURSQUARE PHOTO DIMENSIONS -------'
+				pprint(dimensions)
+
 				tempPhoto['timestamp'] = photoTimestamp
-				tempPhoto['height'] = photoHeight
-				tempPhoto['width'] = photoWidth
 				tempPhoto['id'] = photoId
 				tempPhoto['urlPrefix'] = photoUrlPrefix
 				tempPhoto['urlSuffix'] = photoUrlSuffix
+				print '------- FOURSQUARE PHOTO URL SUFFIX -------', photoUrlSuffix
 
 				photos.append(tempPhoto)
 		except Exception as e:
 			print
 			print '------- ERROR EXTRACTING CHECKIN PHOTO(S) -------', e
-		try:
-			for friend in checkin['overlaps']['items']:
-				nearbyFriends.append(friend)
-		except Exception as e:
-			print
-			print '------- ERROR EXTRACTING NEARBY FRIENDS -------', e
+		# try:
+		# 	for friend in checkin['overlaps']['items']:
+		# 		nearbyFriends.append(friend)
+		# except Exception as e:
+		# 	print
+		# 	print '------- ERROR EXTRACTING NEARBY FRIENDS -------', e
 
 		# Set tempCheckin key-values to extracted information
 		tempCheckin['checkinId'] = checkinId
@@ -378,12 +393,11 @@ def processCheckins(decodedResponse):
 		tempCheckin['venueId'] = venueId
 		tempCheckin['venueName'] = venueName
 		tempCheckin['venueCoords'] = venueCoords
-		tempCheckin['venueUrl'] = venueUrl
-		tempCheckin['venuePhotoUrl'] = venuePhotoUrl
+		# tempCheckin['venuePhotoUrl'] = venuePhotoUrl
 		tempCheckin['venueCoords'] = venueCoords
-		tempCheckin['event'] = event
+		# tempCheckin['event'] = event
 		tempCheckin['photos'] = photos
-		tempCheckin['nearbyFriends'] = nearbyFriends
+		# tempCheckin['nearbyFriends'] = nearbyFriends
 
 		photoNames = []
 		for photo in tempCheckin['photos']:

@@ -170,11 +170,11 @@ def submitRegistration():
 # An 'API' endpoint for randomly choosing <x> number of compact disks and returning their corresponding Storj hash locations
 @app.route('/api/v1/getRandomDisk', methods=['GET'])
 def getRandomDisk():
-	userId = session['userId']
-	# key = request.args.get('key')
+	# userId = session['userId']
+	key = request.args.get('key')
 
 	# missingKeyError = {
-	# 'response': 'Error: Missing Key'
+	# 'response': 'errorsor: Missing Key'
 	# }
 
 	# # Need to change this part to process an api key and return the user id
@@ -189,10 +189,10 @@ def getRandomDisk():
 
 	numDates = 5
 
-	dates = getRandomDates(userId, numDates)
+	dates = getRandomDates(key, numDates)
 
 	for date in dates:
-		storjHash = storjMongo.getDateHashes(userId, date)
+		storjHash = storjMongo.getDateHashes(key, date)
 		returnResponse['storjHashes'].append(storjHash)
 
 	return jsonify(returnResponse), 200
@@ -209,12 +209,14 @@ def uploadToStorj(userId, date):
 	uploadResponse=uploadapi(endpoint)
 	bucketHash = uploadResponse['buckethash']
 	fileHash = uploadResponse['filehash']
+	fileName = uploadResponse['name']
 
 	storjHashObj = {
 	'userId': userId,
 	'date': date,
 	'storjBucketHash': bucketHash,
-	'storjFileHash': fileHash
+	'storjFileHash': fileHash,
+	'fileName': fileName
 	}
 
 	response = storjMongo.writeToStorj(storjHashObj)
@@ -230,8 +232,15 @@ def getRandomDates(userId, numDates):
 # USE THIS FOR TESTING DIFFERENT API FUNCTIONALITY
 @app.route('/test-api')
 def testAPIButton():
+	userId = session['userId']
 
-	
+	# foursquareAPI.resetMostRecentItemId()
+	# foursquareAPI.getUserCheckinHistory()
+
+	# instagramAPI.resetMostRecentItemId()
+	# instagramAPI.getAllNewPosts()
+
+	diskGenerator.generateHistoricalDisks(userId)
 
 	return redirect('service_authorization')
 
