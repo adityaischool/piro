@@ -19,6 +19,40 @@ import diskGenerator, jsonToText, getRandomDiskHashes
 import timezoneUtil,writefile
 import storjMongo
 
+# Instantiate Mongo client
+client = pymongo.MongoClient()
+# Instantiate Mongo data point db
+dataPointDb = client.dataPointDb
+dataPoints = dataPointDb.dataPoints
+# Instantiate Mongo Last.fm db
+lastfmDb = client.lastfm
+recentSongPlaysDb = lastfmDb.lastfmRecentSongPlaysDb
+# Instantiate Mongo Foursquare db
+foursquareDb = client.foursquare
+recentCheckinsDb = foursquareDb.foursquareRecentCheckins
+# Instantiate Mongo memory disk db
+memoryDiskDb = client.memoryDiskDb
+memoryDisks = memoryDiskDb.memoryDisks
+# Instantiate Mongo compact memory disk db
+compactMemoryDiskDb = client.compactMemoryDiskDb
+compactMemoryDisks = compactMemoryDiskDb.compactMemoryDisks
+# Instantiate Instagram Dropbox db
+instagramDb = client.instagram
+recentMediaIdsDb = instagramDb.instagramRecentMediaIds
+# Instantiate Mongo Dropbox db
+dropboxDb = client.dropbox
+dboxUserFolders = dropboxDb.dboxUserFolders
+
+mongoDbs = {
+	'dataPoints': dataPoints,
+	'lastfm': recentSongPlaysDb,
+	'foursquare': recentCheckinsDb,
+	'dropbox': dboxUserFolders,
+	'instagram': recentMediaIdsDb,
+	'memoryDisks': memoryDisks,
+	'compactMemoryDisks': compactMemoryDisks
+}
+
 @app.route('/')
 @app.route('/index')
 def land():
@@ -190,6 +224,7 @@ def getRandomDisk():
 
 	dates = getRandomDates(key, numDates)
 
+
 	for date in dates:
 		storjHash = storjMongo.getDateHashes(key, date)
 		returnResponse['storjHashes'].append(storjHash)
@@ -255,32 +290,117 @@ def testAPIButton():
 
 	return redirect('service_authorization')
 
+@app.route('/data-admin')
+def mongoAdmin():
+	return render_template("data-admin.html", name=escape(session['username']))
+
+@app.route('/disk-get')
+def diskGet():
+	userId = session['userId']
+	diskType = request.args.get('type')
+	if diskType == 'memoryDisks':
+		diskGenerator.generateHistoricalDisks(userId)
+	elif diskType == 'compactMemoryDisks':
+		memoryDisks = diskGenerator.getUserMemoryDisks(userId)
+		diskGenerator.generateCompactDisks(userId, memoryDisks)
+
+@app.route('/service-sync')
+def serviceSync():
+	userId = session['userId']
+	service = request.args.get('service')
+
+	if service == 'dropbox':
+		dropboxAPI.pollUserSelectedFolders()
+	elif service == 'instagram':
+		instagramAPI.getAllNewPosts()
+	elif service == 'foursquare':
+		foursquareAPI.getUserCheckinHistory()
+	elif service == 'lastfm':
+		lastfmAPI.getUserHistoricalPlays()
+
+
+@app.route('/cursor-reset')
+def cursorReset():
+	userId = session['userId']
+	username = session['username']
+	service = request.args.get('service')
+	print
+	print 'resetting cursors for', username+"'s", service, "service"
+
+	serviceDb = mongoDbs[service]
+
+	countBefore = serviceDb.find({'userId': userId}).count()
+	serviceDb.remove({'userId': userId})
+	countAfter = serviceDb.find({'userId': userId}).count()
+	print 'cursor object before', countBefore
+	print 'cursor object after', countAfter
+
+	dataPoints.remove({'$and': [{'userId': userId}, {'source': 'instagram'}]})
+
+	return render_template('mongo-admin.html')
+
+@app.route('/datapoint-reset')
+def datapointReset():
+	userId = session['userId']
+	username = session['username']
+	service = request.args.get('service')
+	print
+	print 'resetting datapoints for', username+"'s", service, "service"
+
+	countBefore = dataPoints.find({'$and': [{'userId': userId}, {'source': service}]}).count()
+	dataPoints.remove({'$and': [{'userId': userId}, {'source': service}]})
+	countAfter = dataPoints.find({'$and': [{'userId': userId}, {'source': service}]}).count()
+	print 'datapoints count before', countBefore
+	print 'datapoints count after', countAfter
+
+	return render_template('mongo-admin.html')
+
+@app.route('/disk-reset')
+def diskReset():
+	userId = session['userId']
+	username = session['username']
+	diskType = request.args.get('type')
+	diskTypeDb = mongoDbs[diskType]
+	print
+	print 'erasing all', diskType+'s' , 'for', username+"'s"
+
+	countBefore = diskTypeDb.find({'userId': userId}).count()
+	diskTypeDb.remove({'userId': userId})
+	countAfter = diskTypeDb.find({'userId': userId}).count()
+	print diskType, 'db count before', countBefore
+	print diskType, 'db count after', countAfter
+
+	return render_template('mongo-admin.html')
+
+
 # THIS WILL GET ALL OF THE LOGGED-IN USER'S UNSYNCED DATA FROM EACH SERVICE
 @app.route('/get-all')
 def getAll():
 	userId = session['userId']
 
 
-	setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
-	setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
-	setAPICredentials('instagram', '710b8ed34bce4cc7894e7991459a4ebb', '23276b9f88c94e30b880a072041aecb3')
-	setAPICredentials('lastfm', '070094824815e5b8dc5fcfbc5a2f723f', '3afa4374733f63f58bd6e5b5962cbbb6')
-	setAPICredentials('dropbox', 'f2ysiyl8imtvz0g', '6pk00rjwh5s24cr')
-	setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
-	setAPICredentials('spotify', '3a1f5d8baa2149b48d9a8128bcc48c05', 'ce6cc2bd81324433984c3f7ab55155b0')
+
+
+	# setAPICredentials('fitbit', '227NKT', 'd7a4ececd5e68a5f3f36d64e304fbe25')
+	# setAPICredentials('foursquare', 'OZ44SB02FKZ52UFPU0BNDJIX02ARUFPRLVRKABH0RAR5YVGR', 'KYDDWZEXFQ33WAD0TU2RCFEAFFNHKHL5LQ4I3EJT1UIJ5BLN')
+	# setAPICredentials('instagram', '710b8ed34bce4cc7894e7991459a4ebb', '23276b9f88c94e30b880a072041aecb3')
+	# setAPICredentials('lastfm', '070094824815e5b8dc5fcfbc5a2f723f', '3afa4374733f63f58bd6e5b5962cbbb6')
+	# setAPICredentials('dropbox', 'f2ysiyl8imtvz0g', '6pk00rjwh5s24cr')
+	# setAPICredentials('forecastio', '2e70ea34e0ed57fe0de1452024af79ba', '')
+	# setAPICredentials('spotify', '3a1f5d8baa2149b48d9a8128bcc48c05', 'ce6cc2bd81324433984c3f7ab55155b0')
 	try:
 		# instagramAPI.resetMostRecentItemId()
-		print "instagram"
-		instagramAPI.resetMostRecentItemId()
-		instagramAPI.getAllNewPosts()
+		# print "instagram"
+		# instagramAPI.resetMostRecentItemId()
+		# instagramAPI.getAllNewPosts()
+		# # foursquareAPI.resetMostRecentItemId()
+		# print "four square"
 		# foursquareAPI.resetMostRecentItemId()
-		print "four square"
-		foursquareAPI.resetMostRecentItemId()
-		foursquareAPI.getUserCheckinHistory()
+		# foursquareAPI.getUserCheckinHistory()
+		# # lastfmAPI.resetMostRecentPlaybackTimestamp()
+		# print "last fm"
 		# lastfmAPI.resetMostRecentPlaybackTimestamp()
-		print "last fm"
-		lastfmAPI.resetMostRecentPlaybackTimestamp()
-		lastfmAPI.getUserHistoricalPlays()
+		# lastfmAPI.getUserHistoricalPlays()
 		print "dropbox"
 		# dropboxAPI.resetUserFolderCursors()
 		dropboxAPI.resetUserFolderCursors()
@@ -315,6 +435,7 @@ def pollAllUserAuthorizedServices():
 	foursquareAPI.getUserCheckinHistory()
 	dropboxAPI.pollUserSelectedFolders()
 	lastfmAPI.getUserRecentPlays()
+
 
 @app.route('/connect-facebook', methods=['GET', 'POST'])
 def connectFacebook():

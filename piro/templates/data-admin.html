@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}
+	Mongo Admin
+{% endblock %}
+
+{% block header %}
+	{{ super() }}
+	<form action="logout" id="logout">
+		<span id="username">Hi, {{ name }}!</span>
+		<input class="action-button" id="logout-button" type="submit" value="Logout">
+	</form>
+{% endblock %}
+
+{% block content %}
+
+<h1>Data Admin</h1>
+
+<div class="divider-hor-80"></div>
+
+<h3>{{ name }}'s Memory Disks</h3>
+<div class="left-align">
+	<div class="block admin-option">
+	<a href="/disk-get?type=memoryDisks" class="action-button btn-extra-wide">Create Memory Disks</a>
+	<span>Generate {{ name }}'s new memory disks</span>
+	</div>
+	<div class="block admin-option">
+	<a href="/disk-reset?type=memoryDisks" class="action-button btn-extra-wide warning-button">Erase Memory Disks</a>
+	<span>Erase all of {{ name }}'s memory disks from Mongo server</span>
+	</div>
+
+	<div class="block admin-option">
+	<a href="/disk-get?type=compactMemoryDisks" class="action-button btn-extra-wide">Create Compact Disks</a>
+	<span>Generate {{ name }}'s new compact memory disks</span>
+	</div>
+	<div class="block admin-option">
+	<a href="/disk-reset?type=compactMemoryDisks" class="action-button btn-extra-wide warning-button">Erase Compact Disks</a>
+	<span>Erase all of {{ name }}'s compact memory disks from Mongo server</span>
+	</div>
+<!-- 	<div class="block admin-option">
+	<a href="/memory-disk-reset?type=metadisk" class="action-button btn-extra-wide">Erase Metadisks</a>
+	<span>Erase all of {{ name }}'s metadisks from server</span>
+	</div> -->
+</div>
+
+<div class="divider-hor-80"></div>
+
+<h3>{{ name }}'s Dropbox</h3>
+<div class="left-align">
+	<div class="block admin-option">
+		<a href="/service-sync/?service=dropbox" class="action-button btn-extra-wide">Sync Dropbox</a>
+		<span>Sync {{ name }}'s dropbox data (get all the new things)</span>
+	</div>
+	<div class="block admin-option">
+		<a href="/cursor-reset?service=dropbox" class="action-button btn-extra-wide warning-button">Reset Dropbox</a>
+		<span>Reset {{ name }}'s dropbox cursor (re-download all files and data on next download cycle)</span>
+	</div>
+	<div class="block admin-option">
+		<a href="/datapoint-reset?service=dropbox" class="action-button btn-extra-wide warning-button">Erase Dropbox</a>
+		<span>Erase all of {{ name }}'s dropbox datapoints from Mongo server</span>
+	</div>
+
+
+<!-- 	<div class="block admin-option">
+		<a href="/cursor-reset?service=all" class="action-button btn-extra-wide">Reset All Cursors</a>
+		<span>Reset {{ name }}'s cursors from every service type (re-download all files and data from every service type on next download cycle)</span>
+	</div> -->
+</div>
+
+<div class="divider-hor-80"></div>
+
+<h3>{{ name }}'s Instagram</h3>
+<div class="left-align">
+	<div class="block admin-option">
+		<a href="/service-sync/?service=instagram" class="action-button btn-extra-wide">Sync Instagram</a>
+		<span>Sync {{ name }}'s instagram data (get all the new things)</span>
+	</div>
+	<div class="block admin-option">
+		<a href="/cursor-reset?service=instagram" class="action-button btn-extra-wide warning-button">Reset Instagram</a>
+		<span>Reset {{ name }}'s instagram cursor (re-download all files and data on next download cycle)</span>
+	</div>
+	<div class="block admin-option">
+			<a href="/datapoint-reset?service=instagram" class="action-button btn-extra-wide warning-button">Erase Instagram</a>
+	<span>Erase all of {{ name }}'s instagram datapoints from Mongo server</span>
+	</div>
+
+<!-- 	<div class="block admin-option">
+	<a href="/datapoint-reset?service=all" class="action-button btn-extra-wide">Reset All Datapoints</a>
+	<span>Erase all of {{ name }}'s datapoints of every service type from server</span>
+	</div> -->
+</div>
+
+<div class="divider-hor-80"></div>
+
+<h3>{{ name }}'s Foursquare</h3>
+<div class="left-align">
+	<div class="block admin-option">
+		<a href="/service-sync/?service=foursquare" class="action-button btn-extra-wide">Sync Foursquare</a>
+		<span>Sync {{ name }}'s foursquare data (get all the new things)</span>
+	</div>
+	<div class="block admin-option">
+		<a href="/cursor-reset?service=foursquare" class="action-button btn-extra-wide warning-button">Reset Foursquare</a>
+		<span>Reset {{ name }}'s foursquare cursor (re-download all files and data on next download cycle)</span>
+	</div>
+	<div class="block admin-option">
+		<a href="/datapoint-reset?service=foursquare" class="action-button btn-extra-wide warning-button">Erase Foursquare</a>
+		<span>Erase all of {{ name }}'s foursquare datapoints from Mongo server</span>
+	</div>
+
+
+</div>
+
+<div class="divider-hor-80"></div>
+
+<h3>{{ name }}'s Last.fm</h3>
+<div class="left-align">
+	<div class="block admin-option">
+		<a href="/service-sync/?service=lastfm" class="action-button btn-extra-wide">Sync Last.fm</a>
+		<span>Sync {{ name }}'s last.fm data (get all the new things)</span>
+	</div>
+	<div class="block admin-option">
+		<a href="/cursor-reset?service=lastfm" class="action-button btn-extra-wide warning-button">Reset Last.fm</a>
+		<span>Reset {{ name }}'s last.fm cursor (re-download all files and data on next download cycle)</span>
+	</div>
+	<div class="block admin-option">
+		<a href="/datapoint-reset?service=lastfm" class="action-button btn-extra-wide warning-button">Erase Last.fm</a>
+		<span>Erase all of {{ name }}'s last.fm datapoints from Mongo server</span>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}{% endblock %}
+
+
