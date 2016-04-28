@@ -183,19 +183,17 @@ def getRandomDisk():
 
 	return jsonify(returnResponse), 200
 
-@app.route('/getRandomDisk/<userid>', methods=['GET'])
+@app.route('/getRandomDisk/<userid1>', methods=['GET'])
 def getRandomDiskForUser(userid1):
 	userId = userid1
+	print "user id = ",userid1
 	# key = request.args.get('key')
-	returnResponse = {
-	'storjHashes': []
-	}
+	returnResponse = {}
 	numDates = 5
-	dates = getRandomDates(userId, numDates)
-	for date in dates:
-		storjHash = storjMongo.getDateHashes(userId, date)
-		returnResponse['storjHashes'].append(storjHash)
-
+	#dates = getRandomDates(userId, numDates)
+	storjHash=getRandomDiskHashes.getRandomStorjHashes(userid1)
+	returnResponse['disks']=storjHash
+	print returnResponse
 	return jsonify(returnResponse), 200
 
 def uploadToStorj(userId, date):

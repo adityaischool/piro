@@ -1,0 +1,6 @@
+inside write storj to mongo, writing to mongo now
+userid,date,buckethash,filehash= alex 20010104 57215987f950444d367f1fb3 83c2f4ebb9d9854b109257c1c6e37e093dbf7c64
+writeobj {'date': '20010104', 'buckethash': u'57215987f950444d367f1fb3', 'userid': 'alex', 'filehash': u'83c2f4ebb9d9854b109257c1c6e37e093dbf7c64'}
+
+--metadisk.txt--
+[{"storjFileHash": "29d43ba5f9c2b4ddf4f2bb4dd3018d170017383f", "fileName": "a.jpg"}, {"storjFileHash": "7d91e90d7b950f101f620196be5b5bae6feb189b", "fileName": "a.jpg"}]

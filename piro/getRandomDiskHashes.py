@@ -129,12 +129,13 @@ def getRandomDateStorjHash(userId, numDates):
 
 
 def getRandomStorjHashes(userId):
+	print "inside random storjhashes"
 	numHashesToReturn = 5
 	randomIndices = []
 	storjHashes = []
 	# Hit compactMemoryDisks Mongo collection to get all of a user's compact disks
 	print "hitting DB for user"
-	cdResults = storjHashesColl.find({'userId': userId})
+	cdResults = storjHashesColl.find({'userid': userId})
 	print "number of hashes found is = ",cdResults.count()
 	# Set the upper range on random integer generation for selecting random disks
 	# Need to put in code for avoiding disks that have already been chosen recently (and those which have been 'hidden' by the user)
@@ -148,11 +149,13 @@ def getRandomStorjHashes(userId):
 	count = 0
 	for result in cdResults:
 		if count in randomIndices:
-			storjHashes.append(result['storjHash'])
+			tempdict={'storjBucketHash':result['buckethash'],'storjFileHash':result['filehash'],'date':result['date']}
+			if tempdict['storjFileHash'] != "":
+				storjHashes.append(tempdict)
 			if len(storjHashes) == numHashesToReturn:
 				break
 		count += 1
-	print '------- RANDOMLY SELETECTED STORJ HASHES TO BE RETURNED -------'
+	print '------- RANDOMLY SELETECTED STORJ HASHES TO BE RETURNED -------',storjHashes
 	for storjHash in storjHashes:
 		print storjHash
 	return storjHashes

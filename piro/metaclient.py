@@ -1,20 +1,6 @@
-import metadisk,hashlib,os,writefile
+import metadisk,hashlib,os,writefile,json
 print " \n           ===building metadisk client===            "
-# Get all registered public keys
-#(private_key, public_key) = metadisk.generate_new_key_pair()
 print metadisk.authenticate(email='bigchobbit@gmail.com', password=hashlib.sha256(b'12345678').hexdigest())
-#key_list = metadisk.public_keys.all()
-#print key_list
-# Add a key
-#metadisk.public_keys.add(public_key)
-# Remove one key
-#metadisk.public_keys.remove(public_key)
-# Remove all keys
-#metadisk.public_keys.clear()
-#print key_list
-#notes - you will always need to auth the metadisk object
-#new_bucket = metadisk.buckets.create(name='my first bucket')
-#print new_bucket
 def returnfiles():
 	bucketid="as"
 	listbuckets=metadisk.buckets.all()
@@ -99,15 +85,6 @@ def storefiles(bucketid,filepath):
 	print "now uploading metadisk text file"
 	new_bucket.files.upload(fileid)
 	return returnobject
-
-	"""bucketid="as"
-	listbuckets=metadisk.buckets.all()
-	for l in listbuckets:
-		print l.id
-		bucketid=l.id
-	new_bucket=metadisk.buckets.get(bucketid)
-	print "new bucket id \n",new_bucket.id,"\n \n uploading files ..."
-	print new_bucket.files.upload('file.txt')"""
 
 def viewfilesinbucket(bucketid):
 	new_bucket=metadisk.buckets.get(bucketid)
@@ -293,19 +270,21 @@ def storefilesapi(userid,date1):
 	#print type(listoffilesinbucket)
 	for fname in listoffilesinbucket:
 		if fname.name in filelist:
-			returnobject['files'].append(fname.hash)
+			tempdict1={'fileName': fname.name,'storjFileHash': fname.hash}
+			returnobject['files'].append(tempdict1)
 	print "---uploaded files----\n",returnobject
 	allhashes=""
 	retobj={}
 	#writeMetaDiskToFile(returnobject)
-	for filehash in returnobject['files']:
-		allhashes=allhashes+filehash+"\n"
+	#for filehash in returnobject['files']:
+		#allhashes=allhashes+filehash+"\n"
 	print "---Creating Metadisk file---"
 	print "---CONTENT for METADISK---\n",allhashes
 	fileid=str(os.path.join(dirpath,"metadisk.txt"))
 		#create metadisk
 	with open(fileid,"a") as myfile:
-		myfile.write(allhashes)
+		json.dump(returnobject['files'],myfile)
+		#myfile.write(allhashes)
 		#file auto closes-ready to upload
 	print "---now uploading metadisk text file---"
 	metahash=""
