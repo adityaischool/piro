@@ -1,4 +1,4 @@
-import metadisk,pymongo,os,datetime,hashlib
+import metadisk,pymongo,os,datetime,hashlib,json
 
 def writetologs(strtowrite):
 	dirpath=os.path.join(os.path.dirname(__file__),'static','logs')
@@ -8,10 +8,16 @@ def writetologs(strtowrite):
 
 def main():
 	#print folderobj
+	counter=1
 	for listdir in folderobj:
 		#print listdir
-		print "starting to upload...."+listdir['user']+"-"+listdir['date']
-		uploadapi(listdir['user']+"-"+listdir['date'])
+		try:
+			print "$$$$$$$$$$$$$$$$$$$$$$$$$$   ",counter,"  OF  ",len(folderobj),"    FOLDERS    $$$$$$$$$$$$$$$$$$$$"
+			counter=counter+1	
+			print "..starting to upload...."+listdir['user']+"-"+listdir['date']
+			uploadapi(listdir['user']+"-"+listdir['date'])
+		except Exception as e:
+			print "$$$$$$$$$$$$$$$$$$$$$$$$$$..exception while uploading...."+listdir['user']+"-"+listdir['date']
 
 def liststagingfiles():
 	print "current directory \n",os.path.dirname(__file__)
@@ -74,8 +80,7 @@ def uploadfilestostorj(userid,date1):
 	except Exception as e:
 		print "Metadisk exception, quit bucket","\n",e
 		return False
-	print "bucket created"
-	print new_bucket,new_bucket.id
+	print "bucket created -- with id---", new_bucket.id
 	returnobject={}
 	returnobject['bucketid']=new_bucket.id
 	print "returnobject",returnobject,"\n","writing to logs"
@@ -120,9 +125,10 @@ def uploadfilestostorj(userid,date1):
 		#allhashes=allhashes+filehash+"\n"
 	print "---Creating Metadisk file---"
 	print "---CONTENT for METADISK---\n",allhashes
-	fileid=str(os.path.join(dirpath,"metadisk.txt"))
+	fileid=str(os.path.join(dirpath,"metadisk"+str(datetime.datetime.now())+".txt"))
 		#create metadisk
 	with open(fileid,"a") as myfile:
+		print "WRITING METADISK FILE == == == = = = = = "+fileid
 		json.dump(returnobject['files'],myfile)
 		#myfile.write(allhashes)
 		#file auto closes-ready to upload
@@ -134,6 +140,7 @@ def uploadfilestostorj(userid,date1):
 		print "Exception for",fileid,e
 		writefile.writetologs("Exception for "+fileid+str(e)+"\n")
 		print "Metadisk upload failed! Cancel PUSH TO storj"
+		deletebucket(new_bucket.id)
 		return False
 	print "Metadisk successfully uploaded - ",metahash
 	print "\n\n Listing uploaded files in bucket"
@@ -156,6 +163,7 @@ def deletebucket(bucketid):
 
 if __name__ == '__main__':
 	writetologs("starting script at" + str(datetime.datetime.now()))
+	print "@@@@@@@@@@@@@@@    starting script at    @@@@@@@@@@@      " + str(datetime.datetime.now())+"      @@@@@@@@@@@@@@@"
 	try:
 		metadisk.authenticate(email='bigchobbit@gmail.com', password=hashlib.sha256(b'12345678').hexdigest())
 	except Exception as e:
