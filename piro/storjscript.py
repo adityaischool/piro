@@ -7,9 +7,10 @@ def writetologs(strtowrite):
 		myfile.write(strtowrite)
 
 def main():
-	print folderobj
+	#print folderobj
 	for listdir in folderobj:
-		print listdir
+		#print listdir
+		print "starting to upload...."+listdir['user']+"-"+listdir['date']
 		uploadapi(listdir['user']+"-"+listdir['date'])
 
 def liststagingfiles():
@@ -18,38 +19,31 @@ def liststagingfiles():
 	dirpath=os.path.join(path1,'static','staging')
 	retobj=[]
 	for curdir,folders,files in os.walk(dirpath):
-		print "iterating ",curdir,"\n",folders
 		if len(folders)==0:
-			#implies this is a end directory
-			#means curdir is "*\staging\uname\date"
-			#whatcomesafterlast"static\staging" and then split by \
-			print "inside loop now"
-			print "curdir",curdir,"pathsep",os.sep
 			ind=curdir.index("static"+os.sep+"staging")
 			indrest=len(curdir)-ind
-			print "ind",ind,"indrest",indrest,"curdir len",len(curdir)
-			print 15+ind,len(curdir)-15-ind
-			#restdir=curdir[15+ind:len(curdir)-15-ind]
 			restdir=curdir[-(len(curdir)-15-ind):]
-			print "restdir",restdir
 			if os.sep in restdir:
 				uid=restdir.split(os.sep)[0]
 				date=restdir.split(os.sep)[1]
-				print "numfiles-",len(files)
+				#print "numfiles-",len(files)
 				tempdict={'user':uid,'date':date,'numfiles':len(files)}
 				retobj.append(tempdict)
-				print "added",tempdict
+				#print "added",tempdict
 	return retobj
 #[{'date': '20010101', 'user': 'alex', 'numfiles': 9}, {'date': '20010102', 'user': 'alex', 'numfiles': 9}, {'date': '20010104', 'user': 'alex', 'numfiles': 5}]
 #@app.route('/uploadapi/<userfolder>', methods=['GET', 'POST'])
 def uploadapi(userfolder):
 	uid=userfolder.split('-')[0]
 	date=userfolder.split('-')[1]
-	#returnobj=uploadfilestostorj(str(uid),str(date))
-	#print "Object returned from upload api", returnobj
-	returnobj=False
-	if returnobj:
-		writestorjtomongo(str(uid),str(date),returnobj['buckethash'],returnobj['filehash'])
+	#CHECK if uid and date already uploaded
+	print "checking if combo exists....counts returned ...",storjHashes.find({'$and': [{'userid': str(uid)}, {'date':str(date)}]}).count()
+	if storjHashes.find({'$and': [{'userid': str(uid)}, {'date':str(date)}]}).count()<1:
+		returnobj=uploadfilestostorj(str(uid),str(date))
+		print "Object returned from upload api", returnobj
+		#returnobj=False
+		if returnobj:
+			writestorjtomongo(str(uid),str(date),returnobj['buckethash'],returnobj['filehash'])
 	#return render_template('myfiles.html', files=str(returnobj))
 
 def writestorjtomongo(userid,date,buckethash,filehash):
@@ -57,33 +51,35 @@ def writestorjtomongo(userid,date,buckethash,filehash):
 	print "userid,date,buckethash,filehash=",userid,date,buckethash,filehash
 	writeobj={'userid':userid,'date':date,'buckethash':buckethash,'filehash':filehash}
 	print "writeobj",writeobj
-	storjHashesBefore = storjHashes.find({'userId': userid}).count()
+	#storjHashesBefore = storjHashes.find({'userId': userid}).count()
 	storjHashes.insert(writeobj)
-	storjHashesAfter = storjHashes.find({'userId': userid}).count()
+	#storjHashesAfter = storjHashes.find({'userId': userid}).count()
 	response = 'Successfully inserted'
+	writetologs(response)
 
 def uploadfilestostorj(userid,date1):
-	print "current directory \n",os.path.dirname(__file__)
+	#print "current directory \n",os.path.dirname(__file__)
 	date=str(date1)
 	path1=os.path.dirname(__file__)
 	dirpath=os.path.join(path1,'static','staging',str(userid),date)
 	print "upload dir ----",dirpath
 	filelist=os.listdir(str(dirpath))
 	#the above line resolved the unicode tell issue..goddamn apparently the dirpath needs to be str then the listdir returns str
-	print "file list",filelist
+	#print "file list",filelist
 	bucketid=userid+date
 	try:
 		print "Creating Metadisk Bucket For "+userid+" and date "+date
 		print metadisk.api_client.api_url
 		new_bucket = metadisk.buckets.create(name=bucketid)
 	except Exception as e:
-		print "=====                    metadisk break                      ====","\n",e
+		print "Metadisk exception, quit bucket","\n",e
+		return False
 	print "bucket created"
 	print new_bucket,new_bucket.id
 	returnobject={}
 	returnobject['bucketid']=new_bucket.id
 	print "returnobject",returnobject,"\n","writing to logs"
-	writefile.writetologs("Bucket created "+new_bucket.id)
+	writetologs("Bucket created "+new_bucket.id)
 	returnobject['files']=[]
 	#create metadisk text file
 	for filename in filelist:
@@ -99,12 +95,18 @@ def uploadfilestostorj(userid,date1):
 			except Exception as e:
 				print "Exception for",fileid,e
 				writetologs("Exception for "+fileid+str(e)+"\n")
+				deletebucket(new_bucket.id)
 				return False
 			print "upload over",filename
 			#returnobject['files'].append(hash1)
 	print "-------uploaded all files to bucket-------"
 	print "----now searching bucket for uploaded files----"
-	listoffilesinbucket= new_bucket.files.all()
+	try:
+		listoffilesinbucket= new_bucket.files.all()
+	except Exception as e:
+		print "exception listing files in bucket"
+		deletebucket(new_bucket.id)
+		return False
 	#print type(listoffilesinbucket)
 	for fname in listoffilesinbucket:
 		if fname.name in filelist:
@@ -146,11 +148,44 @@ def uploadfilestostorj(userid,date1):
 	retobj['buckethash']=returnobject['bucketid']
 	return retobj
 
+def deletebucket(bucketid):
+	try:
+		metadisk.buckets.delete(bucket_id=bucketid)
+	except Exception as e:
+		print "deleted bucket_id "+bucketid
+
 if __name__ == '__main__':
 	writetologs("starting script at" + str(datetime.datetime.now()))
-	metadisk.authenticate(email='bigchobbit@gmail.com', password=hashlib.sha256(b'12345678').hexdigest())
+	try:
+		metadisk.authenticate(email='bigchobbit@gmail.com', password=hashlib.sha256(b'12345678').hexdigest())
+	except Exception as e:
+		writetologs("caught Exception at " + str(datetime.datetime.now()) + str(e))
+		exit()
 	client = pymongo.MongoClient()
 	storjHashesDb = client.storjHashesDb
 	storjHashes = storjHashesDb.storjHashes
 	folderobj=liststagingfiles()
 	main()
+
+
+"""
+write a cron job
+crontab -e 
+add this line this will run every 4 hrs
+0 */4 * * *  /home/runscript.sh
+
+inside runscript.sh
+>
+#!/bin/bash
+
+exec &> /var/www/piro/piro/static/logs/capture.txt
+python /var/www/piro/piro/storjscript.py
+>>>>
+
+exec command outputs to capture.txt every print statemnt in python file
+remember to make it chmod 777 executable
+
+
+
+
+"""
