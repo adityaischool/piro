@@ -24,9 +24,14 @@
   <body>
 {% for x in mylist %}
           <ul>
-            <li class="active">Bucket{{x['bucketid']}}</a></li>
+            <li class="active">Bucket: {{x['bucketid']}}</a></li>
             <li><a href="delete/{{x['bucketid']}}">Delete</a></li>
             <li>Number of files {{x.files|length}}</li>
+            <ul>
+              {% for file in x.files %}
+              <li>File {{ loop.index }} Hash: {{file}}</li>
+              {% endfor %}
+            </ul>
             <li><a href="viewfilesinbucket/{{x['bucketid']}}">View</a></li>
                       </ul>
 {% endfor %}

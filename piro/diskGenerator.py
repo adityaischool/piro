@@ -11,6 +11,7 @@ from forecastioAPI import getPlaceDateWeatherSummary
 from timezoneUtil import utcFromDatetime, datetimeObjFromYYYYMMDD, localizedDatetimeObjFromYYYYMMDD, yyyymmddFromDatetimeObj, geocode, localizedDatetimeObjToReadableDate
 from spotifyAPI import getSpotifyPreviewAndImgUrls
 import random, string
+from jsonToText import outputTxtFromJson
 
 # Instantiate Mongo client
 client = pymongo.MongoClient()
@@ -26,11 +27,11 @@ compactMemoryDisks = compactMemoryDiskDb.compactMemoryDisks
 
 
 def generateHistoricalDisks(userId):
-	memoryDisks.remove({})
+	# memoryDisks.remove({})
 
 	# Iterate through existing disks in Mongo to find the newest disk date as a starting point
 	newestDiskDate = ''
-	mongoQueryResults = memoryDisks.find({'userId': userId}).sort("date", pymongo.DESCENDING)
+	mongoQueryResults = compactMemoryDisks.find({'userId': userId}).sort("date", pymongo.DESCENDING)
 	oldCount = mongoQueryResults.count()
 
 	# Create index for data point localizedTimestamp
@@ -106,6 +107,9 @@ def generateHistoricalDisks(userId):
 			memoryDisks.insert(newDisk)
 		# Increment newestDiskDate
 		newestDiskDate += timedelta(1)
+
+	# Create memory disk text files in appropriate folders 
+	outputTxtFromJson()
 
 
 # Query Mongo for all data points for a given user on a given date

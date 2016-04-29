@@ -290,9 +290,60 @@ def testAPIButton():
 
 	return redirect('service_authorization')
 
+
+
 @app.route('/data-admin')
 def mongoAdmin():
-	return render_template("data-admin.html", name=escape(session['username']))
+	userId = session['userId']
+	# Get counts
+	memoryDiskCount = memoryDisks.find({'userId': userId}).count()
+	compactMemoryDiskCount = compactMemoryDisks.find({'userId': userId}).count()
+	dropboxDatapointCount = dataPoints.find({'$and': [{'userId': userId}, {'source': 'dropbox'}]}).count()
+	foursquareDatapointCount = dataPoints.find({'$and': [{'userId': userId}, {'source': 'foursquare'}]}).count()
+	instagramDatapointCount = dataPoints.find({'$and': [{'userId': userId}, {'source': 'instagram'}]}).count()
+	lastfmDatapointCount = dataPoints.find({'$and': [{'userId': userId}, {'source': 'lastfm'}]}).count()
+	# Get last updated info
+	newestCompactMemoryDiskDate = 'No compact memory disks!'
+	compactMemoryDiskQuery = compactMemoryDisks.find({'userId': userId}).sort("diskDate", pymongo.DESCENDING)
+	for result in compactMemoryDiskQuery:
+		newestCompactMemoryDiskDate = result['diskDate']
+		break
+	foursquareLastSynced = 'Not yet synced!'
+	foursquareMongoQuery = recentCheckinsDb.find({'userId': userId})
+	for result in foursquareMongoQuery:
+		foursquareLastSynced = result['lastCheckinTimestamp']
+		break
+	lastfmLastSynced = 'Not yet synced!'
+	lastfmMongoQuery = recentSongPlaysDb.find({'userId': userId})
+	for result in lastfmMongoQuery:
+		lastfmLastSynced = result['lastSongPlaybackTimestamp']
+		break
+	instagramLastSynced = 'Not yet synced!'
+	instagramMongoQuery = recentMediaIdsDb.find({'userId': userId})
+	for result in instagramMongoQuery:
+		instagramLastSynced = result['mostRecentItemId']
+		break
+	dropboxFolderPath = 'No path set!'
+	dropboxMongoQuery = dboxUserFolders.find({'userId': userId})
+	for folder in dropboxMongoQuery:
+		dropboxFolderCursor = folder['cursor']
+		dropboxFolderPath = folder['path']
+		break
+
+	dataAdminFigures = {
+	'memoryDiskCount': memoryDiskCount,
+	'compactMemoryDiskCount': compactMemoryDiskCount,
+	'dropboxDatapointCount': dropboxDatapointCount,
+	'foursquareDatapointCount': foursquareDatapointCount,
+	'instagramDatapointCount': instagramDatapointCount,
+	'lastfmDatapointCount': lastfmDatapointCount,
+	'newestCompactMemoryDiskDate': newestCompactMemoryDiskDate,
+	'foursquareLastSynced': foursquareLastSynced,
+	'lastfmLastSynced': lastfmLastSynced,
+	'instagramLastSynced': instagramLastSynced,
+	'dropboxFolder': dropboxFolderPath
+	}
+	return render_template("data-admin.html", name=escape(session['username']), dataAdminFigures=dataAdminFigures)
 
 @app.route('/disk-get')
 def diskGet():
@@ -304,7 +355,7 @@ def diskGet():
 		memoryDisks = diskGenerator.getUserMemoryDisks(userId)
 		diskGenerator.generateCompactDisks(userId, memoryDisks)
 
-	return render_template('data-admin.html')
+	return redirect('/data-admin')
 
 @app.route('/service-sync')
 def serviceSync():
@@ -320,7 +371,7 @@ def serviceSync():
 	elif service == 'lastfm':
 		lastfmAPI.getUserHistoricalPlays()
 
-	return render_template('data-admin.html')
+	return redirect('/data-admin')
 
 
 @app.route('/cursor-reset')
@@ -341,7 +392,7 @@ def cursorReset():
 
 	dataPoints.remove({'$and': [{'userId': userId}, {'source': 'instagram'}]})
 
-	return render_template('data-admin.html')
+	return redirect('/data-admin')
 
 @app.route('/datapoint-reset')
 def datapointReset():
@@ -357,7 +408,7 @@ def datapointReset():
 	print 'datapoints count before', countBefore
 	print 'datapoints count after', countAfter
 
-	return render_template('data-admin.html')
+	return redirect('/data-admin')
 
 @app.route('/disk-reset')
 def diskReset():
@@ -374,7 +425,7 @@ def diskReset():
 	print diskType, 'db count before', countBefore
 	print diskType, 'db count after', countAfter
 
-	return render_template('data-admin.html')
+	return redirect('/data-admin')
 
 
 # THIS WILL GET ALL OF THE LOGGED-IN USER'S UNSYNCED DATA FROM EACH SERVICE
