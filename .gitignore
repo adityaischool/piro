@@ -4,3 +4,6 @@ staging/*
 metadisk/
 piro.db
 logfile.txt
+cronlogfile.txt
+static/logs
+capture.txt
