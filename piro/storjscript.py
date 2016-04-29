@@ -13,11 +13,13 @@ def main():
 		#print listdir
 		try:
 			print "$$$$$$$$$$$$$$$$$$$$$$$$$$   ",counter,"  OF  ",len(folderobj),"    FOLDERS    $$$$$$$$$$$$$$$$$$$$"
+			writetologs("..starting to upload...."+listdir['user']+"-"+listdir['date'])
 			counter=counter+1	
 			print "..starting to upload...."+listdir['user']+"-"+listdir['date']
 			uploadapi(listdir['user']+"-"+listdir['date'])
 		except Exception as e:
 			print "$$$$$$$$$$$$$$$$$$$$$$$$$$..exception while uploading...."+listdir['user']+"-"+listdir['date']
+			writetologs ("exception while uploading...."+listdir['user']+"-"+listdir['date']+str(e))
 
 def liststagingfiles():
 	print "current directory \n",os.path.dirname(__file__)
@@ -50,6 +52,7 @@ def uploadapi(userfolder):
 		#returnobj=False
 		if returnobj:
 			writestorjtomongo(str(uid),str(date),returnobj['buckethash'],returnobj['filehash'])
+			writetologs("pushed to mongo"+str(uid)+str(date))
 	#return render_template('myfiles.html', files=str(returnobj))
 
 def writestorjtomongo(userid,date,buckethash,filehash):
@@ -113,9 +116,11 @@ def uploadfilestostorj(userid,date1):
 		deletebucket(new_bucket.id)
 		return False
 	#print type(listoffilesinbucket)
+	writetologs("creating metadisk file")
 	for fname in listoffilesinbucket:
 		if fname.name in filelist:
 			tempdict1={'fileName': fname.name,'storjFileHash': fname.hash}
+			writetologs("fileName"+fname.name+"storjFileHash"+fname.hash)
 			returnobject['files'].append(tempdict1)
 	print "---uploaded files----\n",returnobject
 	allhashes=""
@@ -138,7 +143,7 @@ def uploadfilestostorj(userid,date1):
 		metahash=new_bucket.files.upload(fileid)
 	except Exception as e:
 		print "Exception for",fileid,e
-		writefile.writetologs("Exception for "+fileid+str(e)+"\n")
+		writetologs("Exception for "+fileid+str(e)+"\n")
 		print "Metadisk upload failed! Cancel PUSH TO storj"
 		deletebucket(new_bucket.id)
 		return False
