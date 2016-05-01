@@ -159,3 +159,15 @@ def getRandomStorjHashes(userId):
 	for storjHash in storjHashes:
 		print storjHash
 	return storjHashes
+
+def getallstorjhashes():
+	print "inside random storjhashes"
+	#numHashesToReturn = 5
+	randomIndices = []
+	storjHashes = []
+	#'userid':userid,'date':date,'buckethash':buckethash,'filehash':filehash
+	# Hit compactMemoryDisks Mongo collection to get all of a user's compact disks
+	print "hitting DB for user"
+	cdResults = storjHashesColl.find()
+	#'storjBucketHash':result['buckethash'],'storjFileHash':result['filehash'],'date':result['date']}
+	return cdResults

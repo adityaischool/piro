@@ -785,3 +785,13 @@ def manageuploads():
 	return render_template('uploads.html', mylist=returnobj)
 
 
+@app.route('/uploadedbuckets', methods=['GET', 'POST'])
+def uploadedbuckets():
+	returnResponse = {}
+	numDates = 5
+	returnResponse=getRandomDiskHashes.getallstorjhashes()
+	#returnResponse['disks']=storjHash
+	#print returnResponse
+	#return jsonify(returnResponse), 200
+	#print "record of all b", returnobj
+	return render_template('seeuploads.html', mylist=returnResponse)
